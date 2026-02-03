@@ -1,0 +1,75 @@
+services:
+  nginx:
+    image: fast-api-nginx-dev
+    depends_on:
+      - backend
+    restart: always
+    build:
+      context: nginx
+      dockerfile: Dockerfile.dev
+    container_name: rise-nginx-dev
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/react/dist:/var/www/react
+    ports:
+      - ${DPORT_NGINX_HOST_HTTP}:${DPORT_NGINX_CONTAINER_HTTP}
+      - ${DPORT_NGINX_HOST_HTTPS}:${DPORT_NGINX_CONTAINER_HTTPS}
+    networks:
+      - riseSktzootech
+  backend:
+    image: fast-api-dev
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true     
+    build:
+      context: backend
+      dockerfile: Dockerfile.dev
+    container_name: rise-backend-dev
+    restart: always
+    ports:
+      - ${DPORT_BACKEND_HOST}:${DPORT_BACKEND_CONTAINER}
+    volumes:
+      - ./backend:/app
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - DPORT_BACKEND_CONTAINER=${DPORT_BACKEND_CONTAINER}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}     
+      - DOMAIN=${DOMAIN}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+    networks:
+      - riseSktzootech
+  db:
+    image: postgres:17
+    restart: always
+    env_file:
+      - .env
+    container_name: rise-postgresdb-dev
+    volumes:
+      - rise_postgres_db:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - ${DPORT_DB_HOST}:${DPORT_DB_CONTAINER}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    networks:
+      - riseSktzootech
+
+volumes:
+  rise_postgres_db:
+networks:
+  riseSktzootech:

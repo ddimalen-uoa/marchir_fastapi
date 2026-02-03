@@ -1,0 +1,22 @@
+# DPORT Means variable applied to Docker Port and SPORT variable applied to Service Application Port
+# Pattern = {DPORT | SAPORT}_{Docker Service Name}_{HOST | CONTAINER}_{HTTP | HTTPS}
+DPORT_NGINX_HOST_HTTP=80
+DPORT_NGINX_HOST_HTTPS=443
+DPORT_NGINX_CONTAINER_HTTP=80
+DPORT_NGINX_CONTAINER_HTTPS=443
+DPORT_BACKEND_HOST=8000
+DPORT_BACKEND_CONTAINER=8000
+DPORT_DB_HOST=5432
+DPORT_DB_CONTAINER=5432
+POSTGRES_DB={db name}
+POSTGRES_USER={db user name}
+POSTGRES_PASSWORD={db password}
+POSTGRES_HOST={host example localhost can also refer to service name in docker-compose}
+POSTGRES_PORT=5432
+
+JWT_SECRET_KEY={use "openssl rand -hex 32" to generate}
+JWT_ALGORITHM=HS256
+
+BACKEND_CORS_ORIGINS=http://localhost
+DOMAIN=melonamoy
+PIPELINE=local

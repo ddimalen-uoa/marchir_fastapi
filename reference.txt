@@ -1,0 +1,11 @@
+# Use Dev Containers VS extension
+
+# development
+docker compose -f docker-compose-dev.yml up -d --build --force-recreate --remove-orphans
+
+# update requirements.txt when you are inside a dev container whenever you pip install a package
+pip freeze > requirements.txt
+
+# test
+cd /app
+PYTHONPATH=. pytest

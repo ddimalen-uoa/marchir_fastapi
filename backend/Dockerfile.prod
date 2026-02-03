@@ -1,0 +1,15 @@
+FROM python:3.13.5-slim-bookworm
+
+WORKDIR /app
+
+COPY . /app
+
+RUN pip install -r requirements.txt
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DPORT_BACKEND_CONTAINER=8000
+
+RUN useradd -u 1000 -m appuser
+USER 1000:1000
+
+CMD uvicorn main:app --reload --port=${DPORT_BACKEND_CONTAINER} --host=0.0.0.0
