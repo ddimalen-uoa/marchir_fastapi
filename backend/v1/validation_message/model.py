@@ -1,12 +1,13 @@
 from sqlalchemy import Column, String, Integer
 from config.core import Base
 
-class TestTable(Base):
-    __tablename__ = 'test_table'
+class ValidationMesage(Base):
+    __tablename__ = 'validation_message'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name =  Column(String, nullable=False)
-    value =  Column(String, nullable=True)
+    code =  Column(String, nullable=True)
+    Message =  Column(String, nullable=True)
 
     def __repr__(self):
         return f"<TestTable(name='{self.name}')>"    
