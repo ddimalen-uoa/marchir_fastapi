@@ -13,6 +13,7 @@ import os
 from config.core import engine
 
 from v1.uploaded.service_extension import start_validation
+from v1.uploaded.classes.validation_messages_class import ValidationMessages
 
 MAX_ZIP_BYTES = 50 * 1024 * 1024 
 
@@ -95,8 +96,8 @@ async def upload_zip(file: UploadFile):
         return "hello" if found else "not found"
 
 async def test_me():
-    test = pd.read_sql('test_table', con=engine)
+    validation_messages_dataframe = ValidationMessages()
 
-    print(test)
+    print(validation_messages_dataframe.find_message_by_code("TEST"))
 
     return "hello there"

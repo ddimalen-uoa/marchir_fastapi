@@ -7,7 +7,7 @@ class ValidationMesage(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name =  Column(String, nullable=False)
     code =  Column(String, nullable=True)
-    Message =  Column(String, nullable=True)
+    message =  Column(String, nullable=True)
 
     def __repr__(self):
         return f"<TestTable(name='{self.name}')>"    
