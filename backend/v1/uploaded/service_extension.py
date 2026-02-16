@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from pathlib import Path
 from typing import Optional
 from playwright.async_api import async_playwright, Page, Locator, TimeoutError as PlaywrightTimeoutError
+import config_validator as config
 
 
 async def find_form_element(page: Page, form_id: str = "form-ct") -> Optional[Locator]:
@@ -17,6 +18,26 @@ async def find_form_element(page: Page, form_id: str = "form-ct") -> Optional[Lo
     return locator.first
 
 
+
+async def validate_page(context, file_url: str) -> bool:
+    page = await context.new_page()
+
+    await page.goto(file_url, wait_until="networkidle")
+
+
+
+    for validator_name in config.validator_functions.keys():
+
+        validation_function_results = await config.validator_functions[validator_name](page)
+
+
+    el = await page.query_selector("#test")
+    found = el is not None
+
+    await page.close()  # 🔥 Important to prevent memory leaks
+    return found
+
+
 async def start_validation(index_path: Path) -> bool:
     """
     Open index.html with Playwright and check if #test exists.
@@ -29,18 +50,20 @@ async def start_validation(index_path: Path) -> bool:
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
+            headless=True,  # keep True for server environments
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--window-size=1920,1080"
+            ]
         )
-        page = await browser.new_page()
 
-        # Wait until network is mostly idle to give assets time to load.
-        await page.goto(file_url, wait_until="networkidle")
+        # 🔥 Disable default viewport so window-size actually applies
+        context = await browser.new_context(
+            viewport=None
+        )
 
-        # Check for element with id="test"
-        el = await page.query_selector("#test")
-        found = el is not None
+        found = await validate_page(context, file_url)
 
         await browser.close()
         return found
-
-
