@@ -18,7 +18,18 @@ async def run_validator(page, validation_messages_dataframe):
     
     marchir_util.add_form_status_messages(True, "FORMFOUND", config.form_id, validation_results, validation_messages_dataframe)
 
-    
+    for section_id in config.form_sections.keys():
+        xpath = "//div[@id=\'{form_id}\']//form//div[contains(@id, \'{section_id}\')]".format(form_id=config.form_id, section_id=section_id)
+        section_element = marchir_util.find_element_by_xpath(page, xpath)
+
+        if not section_element:
+            marchir_util.add_section_status_messages(False, "SECTIONMISSING", section_id, config.form_id, validation_results, validation_messages_dataframe)
+            continue
+
+        marchir_util.add_section_status_messages(True, "SECTIONFOUND", section_id, config.form_id, validation_results, validation_messages_dataframe )
+ 
+
+
 
     return validation_results
 
