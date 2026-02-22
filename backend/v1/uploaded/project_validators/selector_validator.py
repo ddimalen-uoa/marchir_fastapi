@@ -1,13 +1,17 @@
 
 
-async def run_validator(page):
+async def run_validator(page, validation_messages_dataframe):
 
-    print('Selector validation starting')
+    validation_results = {}
 
-    el = await page.query_selector("#test")
-    found = el is not None
+    # print('Selector validation starting')
 
-    if found:
-        print("Helllsdkfsdlfkjsdfklj")
+    # el = await page.query_selector("#select")
+    # found = el is not None
 
-    return f"Hellow there!!!! from selector_validator"
+    # if found:
+    #     print("Helllsdkfsdlfkjsdfklj")
+    # else:
+    #     print("Nahhh not found")
+
+    return validation_results
