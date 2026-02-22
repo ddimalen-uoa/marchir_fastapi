@@ -91,9 +91,9 @@ async def upload_zip(file: UploadFile):
         # If multiple, pick the shallowest (closest to root)
         index_path = sorted(candidates, key=lambda p: len(p.parts))[0]
 
-        found = await start_validation(index_path)
+        await start_validation(index_path)
 
-        return "hello" if found else "not found"
+        return "Done upload_zip execution"
 
 async def test_me():
     validation_messages_dataframe = ValidationMessages()
