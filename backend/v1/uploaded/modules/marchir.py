@@ -22,6 +22,17 @@ async def find_element_by_xpath(page: Page, xpath: str):
     # If you specifically want the first matching form
     return locator.first
 
+async def test_xpath(page: Page, xpath: str):
+    locator = page.locator(f"xpath={xpath}")
+
+    count = await locator.count()
+
+    print("The output is ", count)
+
+    return f"helloo"
+
+
+
 def add_form_status_messages(is_form_found, message_code, form_id, validation_results, validation_messages_dataframe):
     '''
     A function adds the formatted result message for the form status to the final result dictionary.

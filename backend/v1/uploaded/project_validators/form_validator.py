@@ -20,17 +20,25 @@ async def run_validator(page, validation_messages_dataframe):
 
     for section_id in config.form_sections.keys():
         xpath = "//div[@id=\'{form_id}\']//form//div[contains(@id, \'{section_id}\')]".format(form_id=config.form_id, section_id=section_id)
-        section_element = marchir_util.find_element_by_xpath(page, xpath)
+        section_element = await marchir_util.find_element_by_xpath(page, xpath)
 
         if not section_element:
             marchir_util.add_section_status_messages(False, "SECTIONMISSING", section_id, config.form_id, validation_results, validation_messages_dataframe)
             continue
 
         marchir_util.add_section_status_messages(True, "SECTIONFOUND", section_id, config.form_id, validation_results, validation_messages_dataframe )
+
+        print("LSAKDJAL;SDKFJA;SLDKJFAS;LDFKJLKJ")
+
+        xpath2 = (
+            f'//div[@id="{config.form_id}"]'
+            f'//form'
+            f'//div[contains(@id, "{section_id}")]'
+            f'//input'
+        )
+
+        test = await marchir_util.test_xpath(page, xpath2)
  
-
-
-
     return validation_results
 
 
