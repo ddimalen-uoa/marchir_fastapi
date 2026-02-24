@@ -52,3 +52,28 @@ def add_section_status_messages(is_section_found, message_code, section_id, form
     validation_result_messages_unformatted_sections = validation_messages_dataframe.find_message_by_code(message_code)
     validation_result_message = validation_result_messages_unformatted_sections.format(section_id=section_id, form_id=form_id)
     validation_results['{section_id} section'.format(section_id=section_id)] = [is_section_found, validation_result_message]
+
+def add_field_number_messages(section_id, num_fields, correct_num_of_fields, validation_results, validation_messages_dataframe ):
+    '''
+    A function determines if a section has the correct number of input elements, and adds the formatted result message to the final result dictinary.
+
+    Parameters:
+        section_id (str): the name of section that is being checked
+        num_fields (int): the number of input elements in the section
+        correct_num_of_fields (int): the correct number of input elements in the section
+        validation_results (dic): a dictionary where the key is a criterion title and the value is a list [result in boolean, result messsage]. The validation result for the input number will be added.
+        validation_messages_dataframe: an sql table used to look up a validation message corresponding to a validation code. 
+    '''
+    if num_fields == correct_num_of_fields:
+        message_code = "SECTIONCORRECTFIELDS"
+        validation_result_boolean_fields = True
+    elif num_fields > correct_num_of_fields:
+        message_code = "SECTIONTOOMANYFIELDS"
+        validation_result_boolean_fields = False
+    elif num_fields < correct_num_of_fields:
+        message_code = "SECTIONNOTENOUGHFIELDS"
+        validation_result_boolean_fields = False
+
+    validation_result_messages_unformatted_fields = validation_messages_dataframe.find_message_by_code(message_code)
+    validation_result_message = validation_result_messages_unformatted_fields.format(section_id=section_id, num_fields=correct_num_of_fields)
+    validation_results['{section_id} section fields'.format(section_id=section_id)] = [validation_result_boolean_fields, validation_result_message]

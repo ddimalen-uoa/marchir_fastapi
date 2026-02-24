@@ -4,7 +4,6 @@ import config_validator as config
 async def run_validator(page, validation_messages_dataframe):
 
     print('Form validation starting')
-    print(validation_messages_dataframe)
 
     validation_results = {}
 
