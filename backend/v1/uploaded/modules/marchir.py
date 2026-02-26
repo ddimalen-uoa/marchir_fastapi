@@ -1,5 +1,6 @@
 from typing import Optional
 from playwright.async_api import async_playwright, Page, Locator, TimeoutError as PlaywrightTimeoutError
+import config_marker as config
 
 async def find_form_element(page: Page, form_id: str = "form-ct") -> Optional[Locator]:
     xpath = f'//div[@id="{form_id}"]//form'
@@ -77,3 +78,7 @@ def add_field_number_messages(section_id, num_fields, correct_num_of_fields, val
     validation_result_messages_unformatted_fields = validation_messages_dataframe.find_message_by_code(message_code)
     validation_result_message = validation_result_messages_unformatted_fields.format(section_id=section_id, num_fields=correct_num_of_fields)
     validation_results['{section_id} section fields'.format(section_id=section_id)] = [validation_result_boolean_fields, validation_result_message]
+
+
+def execute_marker(page: Page):
+    pass

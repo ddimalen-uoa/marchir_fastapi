@@ -21,7 +21,10 @@ async def run_validator(page, validation_messages_dataframe):
         xpath = "//div[@id=\'{form_id}\']//form//div[contains(@id, \'{section_id}\')]".format(form_id=config.form_id, section_id=section_id)
         section_element = marchir_util.find_element_by_xpath(page, xpath)
 
+        print("here at 24", section_element)
+
         if not section_element:
+            print("27th")
             marchir_util.add_section_status_messages(False, "SECTIONMISSING", section_id, config.form_id, validation_results, validation_messages_dataframe)
             continue
 
@@ -32,24 +35,3 @@ async def run_validator(page, validation_messages_dataframe):
 
     return validation_results
 
-
-async def run_validator_orig(page): 
-
-    print('Form validation starting')
-
-    el = await page.query_selector("#test")
-    found = el is not None
-
-    form_element = marchir_util.find_form_element(page, config.form_id)
-
-    found_form_element = form_element is not None
-
-    if found_form_element:
-        print(f"Found nyahahaha {config.form_id}")
-    else:
-        print(f"Not Found {config.form_id}")    
-
-    if found:
-        print("Helllsdkfsdlfkjsdfklj")
-
-    return f"Hellow there!!!! from form_validator"

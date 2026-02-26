@@ -4,6 +4,15 @@ from pathlib import Path
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import config_validator as config
 from v1.uploaded.classes.validation_messages_class import ValidationMessages
+import v1.uploaded.modules.marchir as marchir_util
+
+
+def all_valid(validation_results_dit: dict) -> bool:
+    return all(
+        item[1]
+        for validation_results_dit in validation_results_dit.values()
+        for item in validation_results_dit
+    )
 
 async def validate_page(context, file_url: str) -> bool:
 
@@ -24,9 +33,11 @@ async def validate_page(context, file_url: str) -> bool:
 
             validation_results[validator_name].append([validation_title, validation_result, validation_messages])
 
-    print("RESULTS DISPLAYED:")
-
-    print(validation_results)
+    if(all_valid(validation_results)):
+        print("Yes you are good to go")
+        marchir_util.execute_marker()
+    else:
+        print('Something is not right')
 
     # el = await page.query_selector("#test")
     # found = el is not None
