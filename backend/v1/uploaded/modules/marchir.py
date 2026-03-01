@@ -80,5 +80,13 @@ def add_field_number_messages(section_id, num_fields, correct_num_of_fields, val
     validation_results['{section_id} section fields'.format(section_id=section_id)] = [validation_result_boolean_fields, validation_result_message]
 
 
-def execute_marker(page: Page):
-    pass
+async def execute_marker(page: Page):
+
+    # Take a screenshot of the page
+    await page.screenshot(path="/uploads/test.png", full_page=True)
+
+    marker_results = {}
+
+    
+
+    return "Done Screenshot"
