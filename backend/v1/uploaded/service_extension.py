@@ -35,7 +35,7 @@ async def validate_page(context, file_url: str) -> bool:
 
     if(all_valid(validation_results)):
         print("Yes you are good to go")
-        marchir_util.execute_marker()
+        await marchir_util.execute_marker(page)
     else:
         print('Something is not right')
 

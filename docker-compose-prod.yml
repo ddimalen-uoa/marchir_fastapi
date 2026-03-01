@@ -30,6 +30,9 @@ services:
     restart: always
     ports:
       - "127.0.0.1:8000:8000"
+    volumes:
+      - ./backend:/app
+      - /var/www/marchir_uploads:/uploads
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
