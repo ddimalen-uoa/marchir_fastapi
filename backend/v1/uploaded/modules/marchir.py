@@ -23,6 +23,13 @@ async def find_element_by_xpath(page: Page, xpath: str):
     # If you specifically want the first matching form
     return locator.first
 
+async def element_count_from_xpath(page: Page, xpath: str):
+    locator = page.locator(f"xpath={xpath}")
+
+    count = await locator.count()
+
+    return count
+
 def add_form_status_messages(is_form_found, message_code, form_id, validation_results, validation_messages_dataframe):
     '''
     A function adds the formatted result message for the form status to the final result dictionary.
@@ -86,6 +93,12 @@ async def execute_marker(page: Page):
     await page.screenshot(path="/uploads/test.png", full_page=True)
 
     marker_results = {}
+    
+    print("Start Marker")
+
+    for marker_name in config.marker_functions.keys():
+        marker_function_results = await config.marker_functions[marker_name](page, marker_results)
+
 
     
 

@@ -33,7 +33,7 @@ services:
       - ${DPORT_BACKEND_HOST}:${DPORT_BACKEND_CONTAINER}
     volumes:
       - ./backend:/app
-      - D:/01Projects/Marchir_Uploads:/uploads
+      - C:/01Projects/Marchir_Uploads:/uploads
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}

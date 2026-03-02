@@ -33,6 +33,8 @@ async def validate_page(context, file_url: str) -> bool:
 
             validation_results[validator_name].append([validation_title, validation_result, validation_messages])
 
+    print(validation_results)
+
     if(all_valid(validation_results)):
         print("Yes you are good to go")
         await marchir_util.execute_marker(page)
