@@ -21,10 +21,7 @@ async def run_validator(page, validation_messages_dataframe):
         xpath = "//div[@id=\'{form_id}\']//form//div[contains(@id, \'{section_id}\')]".format(form_id=config.form_id, section_id=section_id)
         section_element = await marchir_util.find_element_by_xpath(page, xpath)
 
-        print("here at 24", section_element)
-
         if not section_element:
-            print("27th")
             marchir_util.add_section_status_messages(False, "SECTIONMISSING", section_id, config.form_id, validation_results, validation_messages_dataframe)
             continue
 
