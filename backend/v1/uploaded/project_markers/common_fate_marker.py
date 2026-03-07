@@ -3,4 +3,8 @@ import config_validator as config
 
 async def run_marker(page, marker_results):
     print("Common Fate Marker")
-    return f"hello"
+
+    return {
+        'Input-field Common Fate': 0,
+        'Input-field Common Fate Penalties': 0
+    } 

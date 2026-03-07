@@ -1,6 +1,7 @@
 from typing import Optional
 from playwright.async_api import async_playwright, Page, Locator, TimeoutError as PlaywrightTimeoutError
 import config_marker as config
+import json
 
 async def find_form_element(page: Page, form_id: str = "form-ct") -> Optional[Locator]:
     xpath = f'//div[@id="{form_id}"]//form'
@@ -91,6 +92,8 @@ async def execute_marker(page: Page):
 
     # Take a screenshot of the page
     await page.screenshot(path="/uploads/test.png", full_page=True)
+    
+    print("Done Screenshot")
 
     marker_results = {}
     
@@ -99,7 +102,10 @@ async def execute_marker(page: Page):
     for marker_name in config.marker_functions.keys():
         marker_function_results = await config.marker_functions[marker_name](page, marker_results)
 
-
+        for marker_title in marker_function_results.keys():
+            marker_result = marker_function_results[marker_title]
+            marker_results[marker_title] = marker_result
     
+    print(json.dumps(marker_results))
 
     return "Done Screenshot"
