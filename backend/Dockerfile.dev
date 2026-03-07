@@ -37,6 +37,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install -r requirements.txt
 RUN pip install playwright
+RUN pip install httpx
+RUN pip install ldap3
 
 # ✅ Install browsers to a shared location in the image
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright

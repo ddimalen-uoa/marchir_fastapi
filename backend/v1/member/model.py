@@ -1,40 +1,39 @@
-import datetime
+from __future__ import annotations
 
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.orm import relationship
+from datetime import datetime
+from typing import TYPE_CHECKING, List, Optional
+
+from sqlalchemy import Boolean, DateTime, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+if TYPE_CHECKING:
+    from v1.enrollment.model import Enrollment
 
 from config.core import Base
-
 
 class Member(Base):
     __tablename__ = "member"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
 
-    first_name = Column(String(100))
-    last_name = Column(String(100))
-    email = Column(String(100))
-    upi = Column(String(20))
-    employee_id = Column(String(50))
-    image_file = Column(String(500))
+    first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    upi: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    role: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
 
-    notification_type = Column(Integer)
-    role = Column(String(200))
-
-    created = Column(DateTime, default=datetime.datetime.utcnow, nullable=True)
-    last_edited = Column(DateTime, default=datetime.datetime.utcnow, nullable=True)
-
-    request_members = relationship(
-        "RequestMember",
+    created: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=True
+    )
+    last_edited: Mapped[Optional[datetime]] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=True, onupdate=datetime.utcnow
+    )
+    
+    # Relationship
+    enrollments: Mapped[List["Enrollment"]] = relationship(
+        "Enrollment",
         back_populates="member",
         cascade="all, delete-orphan",
-    )
-
-    # many-to-many with Request through request_member association table
-    requests = relationship(
-        "Request",
-        secondary="request_member",
-        back_populates="members",
     )
 
     def __repr__(self):
