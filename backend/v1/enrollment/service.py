@@ -6,18 +6,15 @@ from typing import List, Any
 import httpx
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from ldap3 import Server, Connection, ALL, SUBTREE
 
+from config.config_loader import settings
+
 from v1.course.model import Course
-
-
-ENROLLMENT_API_URL = "https://apis.auckland.ac.nz/enrolment/v1/enrolments"
-COURSE_API_URL = "https://apis.auckland.ac.nz/classes/v2/classes"
-API_TOKEN = "N57l0MpRZ8PNSt3PlUOJ0QzU08M6ZJ7d"
-
-if not API_TOKEN:
-    raise RuntimeError("AUCKLAND_API_TOKEN is not set")
+from v1.enrollment.model import Enrollment
+from v1.member.model import Member
 
 
 def is_semester_matched(semester: str, date_str: str, year: int) -> bool:
@@ -44,7 +41,7 @@ def is_semester_matched(semester: str, date_str: str, year: int) -> bool:
 async def get_student_ids_from_enrolments(
     client: httpx.AsyncClient, class_id: str, year: int
 ) -> List[str]:
-    headers = {"apikey": API_TOKEN}
+    headers = {"apikey": settings.API_TOKEN}
     params = {
         "classId": class_id,
         "acadYear": year,
@@ -53,7 +50,7 @@ async def get_student_ids_from_enrolments(
     }
 
     try:
-        response = await client.get(ENROLLMENT_API_URL, headers=headers, params=params)
+        response = await client.get(settings.ENROLLMENT_API_URL, headers=headers, params=params)
         response.raise_for_status()
 
         data = response.json()
@@ -89,7 +86,7 @@ async def get_course_numbers(
     semester: str,
     year: int,
 ) -> List[str]:
-    headers = {"apikey": API_TOKEN}
+    headers = {"apikey": settings.API_TOKEN}
     params = {
         "acadOrg": course_code,
         "catalogNbr": course_number,
@@ -101,7 +98,7 @@ async def get_course_numbers(
     }
 
     try:
-        response = await client.get(COURSE_API_URL, headers=headers, params=params)
+        response = await client.get(settings.COURSE_API_URL, headers=headers, params=params)
         response.raise_for_status()
 
         data = response.json()
@@ -143,9 +140,9 @@ async def get_upis_from_ldap(student_ids: list[str]) -> list[dict[str, Any]]:
     return await asyncio.to_thread(_get_upis_from_ldap_sync, student_ids)
 
 def _get_upis_from_ldap_sync(student_ids: list[str]) -> list[dict[str, Any]]:
-    ldap_server_url = "ldaps://ldap.uoa.auckland.ac.nz:636"
-    user_dn = "CN=crun713,OU=People,DC=UoA,DC=auckland,DC=ac,DC=nz"
-    password = "sly8i2u2"
+    ldap_server_url = settings.LDAP_SERVER_URL
+    user_dn = settings.LDAP_USER_DN
+    password = settings.LDAP_PASSWORD
 
     server = Server(ldap_server_url, get_info=ALL)
     conn = None
@@ -192,6 +189,25 @@ def _get_upis_from_ldap_sync(student_ids: list[str]) -> list[dict[str, Any]]:
         if conn is not None:
             conn.unbind()
 
+def check_or_add_student(student, db: Session):
+    stmt = select(Member).where(Member.upi == student["UPI"])
+    existing_member = db.execute(stmt).scalar_one_or_none()
+
+    if existing_member is not None:
+        return existing_member.id
+    
+    new_member = Member(
+        upi=student["UPI"],
+        first_name=student["GivenName"],
+        last_name=student["DisplayName"].replace(student["GivenName"], ""),
+    )
+
+    db.add(new_member)
+    db.commit()
+    db.refresh(new_member)
+    
+    return new_member.id
+
 async def process_course(
     client: httpx.AsyncClient,
     course_code: str,
@@ -199,6 +215,7 @@ async def process_course(
     course_id: int,
     semester: str,
     year: int,
+    db: Session
 ):
     class_numbers = await get_course_numbers(
         client, course_code, course_number, semester, year
@@ -214,11 +231,24 @@ async def process_course(
 
     student_list = await get_upis_from_ldap(student_ids)
 
+    for student in student_list:
+        member_id = check_or_add_student(student, db)
+        stmt = select(Enrollment).where(
+            Enrollment.member_id == member_id,
+            Enrollment.course_id == course_id
+        )
+        student_enrolment = db.execute(stmt).scalar_one_or_none()
+        if student_enrolment is None:
+            student_enrolment = Enrollment(member_id=member_id, course_id=course_id)
+            db.add(student_enrolment)
+            db.commit()
+            db.refresh(student_enrolment)
+
     return student_list
 
 
 async def get_auto_enroll_module(db: Session):
-    courses = db.query(Course).filter(Course.is_active == True).all()
+    courses = db.query(Course).filter(Course.is_active).all()
 
     timeout = httpx.Timeout(20.0, connect=10.0)
 
@@ -241,6 +271,7 @@ async def get_auto_enroll_module(db: Session):
                 course.id,
                 semester,
                 int(year),
+                db
             )
 
             results.append(
