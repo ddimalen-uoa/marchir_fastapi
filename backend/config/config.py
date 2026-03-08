@@ -35,6 +35,14 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = 'THE SECRET'
     JWT_ALGORITHM: str = 'HS256'
 
+    ENROLLMENT_API_URL: str
+    COURSE_API_URL: str
+    API_TOKEN: str
+
+    LDAP_SERVER_URL: str
+    LDAP_USER_DN: str
+    LDAP_PASSWORD: str
+
     DOMAIN: str = 'localhost'
 
     BACKEND_CORS_ORIGINS: Annotated[
