@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     LDAP_USER_DN: str
     LDAP_PASSWORD: str
 
+    OAUTH_CLIENT_ID: str
+    OAUTH_AUTHORIZE_URL: str
+    OAUTH_TOKEN_URL: str
+    OAUTH_USERINFO_URL: str
+    OAUTH_REDIRECT_URI: str
+    OAUTH_CLIENT_SECRET: str = ''
+    FRONTEND_URL: str
+    SESSION_SECRET: str
+
     DOMAIN: str = 'localhost'
 
     BACKEND_CORS_ORIGINS: Annotated[

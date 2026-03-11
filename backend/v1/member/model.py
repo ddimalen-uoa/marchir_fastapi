@@ -18,8 +18,13 @@ class Member(Base):
 
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    upi: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    email: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True)
+    upi: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        index=True,
+        unique=True,
+        nullable=True,
+    )
     role: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
 
     created: Mapped[Optional[datetime]] = mapped_column(
