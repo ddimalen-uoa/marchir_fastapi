@@ -18,18 +18,15 @@ from v1.user_session.model import UserSession
 
 from config.config_loader import settings
 
+from v1.auth.service_extension import CurrentMember
+
 def extract_upi_from_email(email: str) -> str | None:
-    if not email:
+    if not email or "@" not in email:
         return None
-
-    if "@" not in email:
-        return None
-
     return email.split("@")[0].lower()
 
 def generate_state() -> str:
     return secrets.token_urlsafe(32)
-
 
 def generate_code_verifier() -> str:
     return secrets.token_urlsafe(64)
@@ -67,6 +64,17 @@ async def get_login_module(db:Session):
     url = settings.OAUTH_AUTHORIZE_URL + "?" + urllib.parse.urlencode(params)
     return RedirectResponse(url, status_code=302)
 
+def get_dashboard_path_for_role(role: str | None) -> str:
+    normalized_role = (role or "").strip().lower()
+
+    if normalized_role == "student":
+        return "/student"
+    if normalized_role == "teacher":
+        return "/teacher"
+    if normalized_role == "admin":
+        return "/admin"
+
+    return "/"
 
 async def get_callback_module(
         db: Session = None,
@@ -140,25 +148,29 @@ async def get_callback_module(
         userinfo = userinfo_resp.json()
 
     email = userinfo.get("email")
-
     if not email:
         raise HTTPException(status_code=403, detail="User account has no email")
 
-    upi = extract_upi_from_email(email)
+    upi = userinfo.get("preferred_username")
+    if upi:
+        upi = upi.lower()
+    else:
+        upi = extract_upi_from_email(email)
 
     if not upi:
         raise HTTPException(status_code=403, detail="Could not determine UPI")
 
     member = (
         db.query(Member)
-        .filter(func.lower(Member.upi) == upi)
+        .filter(Member.upi.isnot(None))
+        .filter(Member.upi.ilike(upi))
         .first()
     )
 
     if not member:
         raise HTTPException(
             status_code=403,
-            detail="Access denied. Your account is not registered as a member.",
+            detail=f"Access denied. UPI '{upi}' is not registered.",
         )
 
     given_name = userinfo.get("given_name")
@@ -187,8 +199,10 @@ async def get_callback_module(
     txn.is_used = True
     db.commit()
 
+    dashboard_path = get_dashboard_path_for_role(member.role)
+
     response = RedirectResponse(
-        url=f"{settings.FRONTEND_URL}/dashboard",
+        url=f"{settings.FRONTEND_URL}{dashboard_path}",
         status_code=302,
     )
 
@@ -204,26 +218,8 @@ async def get_callback_module(
     return response  
 
 async def get_me_module(
-        session_token: str | None = Cookie(default=None),
-        db: Session = None,
+        member: CurrentMember
     ):
-    if not session_token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    session_row = (
-        db.query(UserSession)
-        .filter(UserSession.session_token == session_token)
-        .first()
-    )
-
-    if not session_row:
-        raise HTTPException(status_code=401, detail="Invalid session")
-
-    if session_row.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=401, detail="Session expired")
-
-    member = session_row.member
-
     return {
         "authenticated": True,
         "member": {
