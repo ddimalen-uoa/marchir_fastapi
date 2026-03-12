@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func, distinct
 from math import ceil
 
+from config.core import DbSession
+
 import pandas as pd
 from pathlib import Path
 import tempfile
@@ -14,6 +16,7 @@ from config.core import engine
 
 from v1.uploaded.service_extension import start_validation
 from v1.uploaded.classes.validation_messages_class import ValidationMessages
+from v1.auth.service_extension import CurrentMember, StudentMember
 
 MAX_ZIP_BYTES = 50 * 1024 * 1024 
 
@@ -42,7 +45,11 @@ def safe_extract_zip(zip_path: Path, extract_to: Path) -> None:
         zf.extractall(extract_to)
 
 
-async def upload_zip(file: UploadFile):
+async def upload_zip(
+        member: StudentMember,
+        file: UploadFile,
+        db: DbSession = None # type: ignore
+    ):
     # Basic content-type check (not fully reliable, but helpful)
     if not file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="Please upload a .zip file")

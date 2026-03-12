@@ -2,6 +2,7 @@ from fastapi import APIRouter, Cookie
 from config.core import DbSession
 
 from . import service
+from v1.auth.service_extension import CurrentMember
 
 router = APIRouter(
     prefix='/auth',
@@ -24,10 +25,9 @@ async def get_callback_route(
 
 @router.get("/me")
 async def get_me_route(
-    session_token: str | None = Cookie(default=None),
-    db: DbSession = None, # type: ignore
+    member: CurrentMember
 ):
-    return await service.get_me_module(session_token, db)
+    return await service.get_me_module(member)
 
 @router.post("/logout")
 async def get_logout_route(

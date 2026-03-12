@@ -1,8 +1,9 @@
 from fastapi import APIRouter, status,  UploadFile, File, HTTPException
-from fastapi.responses import PlainTextResponse
+
 from config.core import DbSession
 
 from . import service
+from v1.auth.service_extension import CurrentMember, StudentMember
 
 router = APIRouter(
     prefix='/upload-route',
@@ -10,11 +11,19 @@ router = APIRouter(
 )
 
 
-@router.post("/upload-zip", response_class=PlainTextResponse)
-async def upload_zip_route(file: UploadFile = File(...)):
-    return await service.upload_zip(file)
+@router.post("/upload-zip")
+async def upload_zip_route(
+    member: StudentMember,
+    file: UploadFile = File(...),    
+    db: DbSession = None # type: ignore    
+):
+    return await service.upload_zip(
+        member,
+        file,
+        db
+    )
 
 
-@router.post("/test-me", response_class=PlainTextResponse)
+@router.post("/test-me")
 async def test_me_route():
     return await service.test_me()
