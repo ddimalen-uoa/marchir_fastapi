@@ -16,3 +16,13 @@ export async function logout() {
     credentials: "include",
   });
 }
+
+export async function uploadFile(formData: FormData) {
+  const response = await fetch("https://localhost/api/v1/upload-route/upload-zip", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+  });
+
+  return response;
+}

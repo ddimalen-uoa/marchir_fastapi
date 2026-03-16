@@ -14,7 +14,7 @@ def all_valid(validation_results_dit: dict) -> bool:
         for item in validation_results_dit
     )
 
-async def validate_page(context, file_url: str) -> bool:
+async def validate_page(context, file_url: str):
 
     validation_messages_dataframe = ValidationMessages()
 
@@ -33,8 +33,6 @@ async def validate_page(context, file_url: str) -> bool:
 
             validation_results[validator_name].append([validation_title, validation_result, validation_messages])
 
-    print(validation_results)
-
     if(all_valid(validation_results)):
         print("Yes you are good to go")
         await marchir_util.execute_marker(page)
@@ -46,14 +44,11 @@ async def validate_page(context, file_url: str) -> bool:
 
     await page.close()  # 🔥 Important to prevent memory leaks
 
-    return "DONE"
+    return validation_results
 
 
-async def start_validation(index_path: Path) -> bool:
-    """
-    Open index.html with Playwright and check if #test exists.
-    Uses file:// URL so relative assets (css/images) load from extracted folder.
-    """
+async def start_validation(index_path: Path):
+    
     if not index_path.exists():
         raise HTTPException(status_code=400, detail="index.html not found in zip")
 
@@ -74,7 +69,8 @@ async def start_validation(index_path: Path) -> bool:
             viewport=None
         )
 
-        found = await validate_page(context, file_url)
+        results = await validate_page(context, file_url)
 
         await browser.close()
-        return found
+
+        return results
