@@ -3,22 +3,15 @@ import { LogoutButton } from "./LogoutButton";
 
 export function AppShell() {
   return (
-    <div style={{ padding: 24, fontFamily: "Arial, sans-serif" }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 24,
-        }}
-      >
-        <h1 style={{ margin: 0 }}>RISE</h1>
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <div className="flex items-center justify-between px-6 py-4 mx-auto max-w-7xl">
+        <h1 className="text-2xl font-bold tracking-tight">HCI Assignment Marker</h1>
         <LogoutButton />
-      </header>
+      </div>
 
-      <main>
-        <Outlet />
-      </main>
+
+      <Outlet />
+
     </div>
   );
 }

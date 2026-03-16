@@ -44,7 +44,6 @@ def safe_extract_zip(zip_path: Path, extract_to: Path) -> None:
 
         zf.extractall(extract_to)
 
-
 async def upload_zip(
         member: StudentMember,
         file: UploadFile,
@@ -98,9 +97,9 @@ async def upload_zip(
         # If multiple, pick the shallowest (closest to root)
         index_path = sorted(candidates, key=lambda p: len(p.parts))[0]
 
-        await start_validation(index_path)
+        validation_result = await start_validation(index_path)
 
-        return "Done upload_zip execution"
+        return validation_result
 
 async def test_me():
     validation_messages_dataframe = ValidationMessages()
