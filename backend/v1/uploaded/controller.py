@@ -3,7 +3,7 @@ from fastapi import APIRouter, status,  UploadFile, File, HTTPException
 from config.core import DbSession
 
 from . import service
-from v1.auth.service_extension import CurrentMember, StudentMember
+from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrollment
 
 router = APIRouter(
     prefix='/upload-route',
@@ -19,6 +19,21 @@ async def upload_zip_route(
 ):
     return await service.upload_zip(
         member,
+        file,
+        db
+    )
+
+
+@router.post("/submit-assignment")
+async def submit_assignment_route(
+    member: StudentMember,
+    enrollment: CurrentEnrollment,
+    file: UploadFile = File(...),    
+    db: DbSession = None # type: ignore    
+):
+    return await service.submit_assignment(
+        member,
+        enrollment,
         file,
         db
     )

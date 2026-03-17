@@ -26,3 +26,13 @@ export async function uploadFile(formData: FormData) {
 
   return response;
 }
+
+export async function markAssginment(formData: FormData) {
+    const response = await fetch("https://localhost/api/v1/upload-route/submit-assignment", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+  });
+
+  return response;
+}
