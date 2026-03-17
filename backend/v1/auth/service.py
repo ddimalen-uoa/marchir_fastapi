@@ -55,7 +55,7 @@ async def get_login_module(db:Session):
         "response_type": "code",
         "client_id": settings.OAUTH_CLIENT_ID,
         "redirect_uri": settings.OAUTH_REDIRECT_URI,
-        "scope": "openid profile https://purchase.cs.auckland.ac.nz/read-data",
+        "scope": "openid profile https://cs-marchir.auckland.ac.nz/read-data",
         "state": state,
         "code_challenge": code_challenge,
         "code_challenge_method": "S256",

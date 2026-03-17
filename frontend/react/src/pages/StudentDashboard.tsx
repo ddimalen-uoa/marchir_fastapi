@@ -1,36 +1,40 @@
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../features/auth/useAuth";
-import React, { useRef, useState } from "react";
-import { uploadFile, markAssginment } from "../api/api";
+import { uploadFile, markAssginment, getLastSubmission } from "../api/api";
 
-// export default function StudentDashboard() {
-//   const { data } = useAuth();
+type ValidatorItem = {
+  passed: boolean;
+  message: string;
+};
 
-//   return (
-//     <div>
-//       <h2>Student Dashboard</h2>
-//       <p>Welcome, {data?.member.first_name ?? data?.member.upi ?? "Student"}.</p>
-//     </div>
-//   );
-// }
+type ValidationApiResponse = {
+  isOk: boolean;
+  validators: Record<string, ValidatorItem[]>;
+};
+
+type LastSubmissionApiResponse = {
+  file_name: string;
+  submitted_at: string;
+  status: string;
+};
 
 type SubmissionRecord = {
   fileName: string;
   submittedAt: string;
-  status: "Submitted";
-  validationResult: "Successful";
+  status: string;
+  validationResult: string;
 };
 
 type ValidationState =
   | { type: "idle" }
   | { type: "loading" }
+  | { type: "submitting" }
   | { type: "error"; errors: string[] }
   | { type: "success" }
   | { type: "submitted"; submission: SubmissionRecord }
   | { type: "cancelled" };
 
-type ApiResponse = Record<string, any[][]>;
-
-function parseFailedValidatorMessages(data: ApiResponse): string[] {
+function parseFailedValidatorMessages(data: ValidationApiResponse): string[] {
   const result: string[] = [];
 
   Object.entries(data.validators).forEach(([validatorName, items]) => {
@@ -44,6 +48,15 @@ function parseFailedValidatorMessages(data: ApiResponse): string[] {
   return result;
 }
 
+function mapSubmissionFromApi(data: LastSubmissionApiResponse): SubmissionRecord {
+  return {
+    fileName: data.file_name,
+    submittedAt: new Date(data.submitted_at).toLocaleString(),
+    status: data.status ?? "Submitted",
+    validationResult: "Successful",
+  };
+}
+
 export default function StudentDashboard() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { data } = useAuth();
@@ -51,6 +64,7 @@ export default function StudentDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validationState, setValidationState] = useState<ValidationState>({ type: "idle" });
   const [lastSubmission, setLastSubmission] = useState<SubmissionRecord | null>(null);
+  const [isFetchingLastSubmission, setIsFetchingLastSubmission] = useState(true);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
@@ -68,50 +82,49 @@ export default function StudentDashboard() {
   };
 
   const handleValidate = async () => {
-  if (!selectedFile) return;
+    if (!selectedFile) return;
 
-  const formData = new FormData();
-  formData.append("file", selectedFile);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
 
-  setValidationState({ type: "loading" });
+    setValidationState({ type: "loading" });
 
-  try {
-    const response = await uploadFile(formData);
-    const data: ApiResponse = await response.json();
+    try {
+      const response = await uploadFile(formData);
+      const data: ValidationApiResponse = await response.json();
 
-    if (response.status !== 200) {
+      if (!response.ok) {
+        setValidationState({
+          type: "error",
+          errors: [
+            "Something is wrong with your submission.",
+            "Check that index.html is found in the ZIP file.",
+            "Your ZIP file might be corrupted.",
+            "Contact d.dimalen@auckland.ac.nz for assistance.",
+          ],
+        });
+        return;
+      }
+
+      if (!data.isOk) {
+        const messages = parseFailedValidatorMessages(data);
+
+        setValidationState({
+          type: "error",
+          errors: messages.length > 0 ? messages : ["Validation failed."],
+        });
+        return;
+      }
+
+      setValidationState({ type: "success" });
+    } catch (error) {
+      console.error("Validation failed:", error);
       setValidationState({
         type: "error",
-        errors: [
-          "Something is wrong with your submission.",
-          "Check index.html is found in zip.",
-          "Your zip file might be corrupted.",
-          "Contact d.dimalen@auckland.ac.nz for assistance.",
-        ],
+        errors: ["An unexpected error occurred while validating your submission."],
       });
-      return;
     }
-
-    if (!data.isOk) {
-      const messages = parseFailedValidatorMessages(data);
-
-      setValidationState({
-        type: "error",
-        errors: messages.length > 0 ? messages : ["Validation failed."],
-      });
-      return;
-    }
-
-    setValidationState({ type: "success" });
-  } catch (error) {
-    setValidationState({
-      type: "error",
-      errors: [
-        "An unexpected error occurred while validating your submission.",
-      ],
-    });
-  }
-};
+  };
 
   const handleCancel = () => {
     setValidationState({ type: "cancelled" });
@@ -123,32 +136,77 @@ export default function StudentDashboard() {
     const formData = new FormData();
     formData.append("file", selectedFile);
 
-    // Replace this with your actual submit API call.
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    setValidationState({ type: "submitting" });
 
     try {
-        const response = await markAssginment(formData);
-        const data: ApiResponse = await response.json();
-        console.log(data);
+      const response = await markAssginment(formData);
+
+      if (!response.ok) {
+        setValidationState({
+          type: "error",
+          errors: ["Failed to submit your assignment."],
+        });
+        return;
+      }
+
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const year = now.getFullYear();
+
+      const submission: SubmissionRecord = {
+        fileName: `submission_${month}_${year}.zip`,
+        submittedAt: now.toLocaleString(),
+        status: "Submitted",
+        validationResult: "Successful",
+      };
+
+      setLastSubmission(submission);
+      setValidationState({ type: "submitted", submission });
+      setSelectedFile(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
-      
+      console.error("Submission failed:", error);
+      setValidationState({
+        type: "error",
+        errors: ["An unexpected error occurred while submitting your assignment."],
+      });
     }
-
-    const submission: SubmissionRecord = {
-      fileName: selectedFile.name,
-      submittedAt: new Date().toLocaleString(),
-      status: "Submitted",
-      validationResult: "Successful",
-    };
-
-    setLastSubmission(submission);
-    setValidationState({ type: "submitted", submission });
   };
 
   const handleReupload = () => {
     handleClear();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const fetchLastSubmission = async () => {
+      try {
+        const response = await getLastSubmission();
+
+        if (!response.ok) {
+          console.error("Failed to fetch last submission:", response.status);
+          return;
+        }
+
+        const data: LastSubmissionApiResponse | null = await response.json();
+
+        if (!data) return;
+
+        const submission = mapSubmissionFromApi(data);
+        setLastSubmission(submission);
+        // setValidationState({ type: "submitted", submission });
+      } catch (error) {
+        console.error("Failed to fetch last submission:", error);
+      } finally {
+        setIsFetchingLastSubmission(false);
+      }
+    };
+
+    fetchLastSubmission();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -292,7 +350,7 @@ export default function StudentDashboard() {
           </aside>
         </div>
 
-        {lastSubmission && (
+        {!isFetchingLastSubmission && lastSubmission && (
           <section className="mt-8">
             <div className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200">
               <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -385,7 +443,11 @@ function StatusPanel({ state }: StatusPanelProps) {
               stroke="currentColor"
               strokeWidth="4"
             />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z" />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+            />
           </svg>
 
           <div>
@@ -467,6 +529,41 @@ function StatusPanel({ state }: StatusPanelProps) {
             <p className="font-semibold text-slate-800">Submission cancelled</p>
             <p className="mt-1 text-sm text-slate-600">
               You can choose another ZIP file and validate again.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.type === "submitting") {
+    return (
+      <div className="p-5 mt-8 border border-blue-200 rounded-2xl bg-blue-50">
+        <div className="flex items-start gap-3">
+          <svg
+            className="mt-0.5 h-5 w-5 animate-spin text-blue-600"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+            />
+          </svg>
+
+          <div>
+            <p className="font-semibold text-blue-900">Submitting...</p>
+            <p className="mt-1 text-sm text-blue-700">
+              Your ZIP file is being uploaded and recorded.
             </p>
           </div>
         </div>
