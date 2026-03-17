@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -27,6 +27,10 @@ class MarkerResult(Base):
     enrollment: Mapped["Enrollment"] = relationship(
         "Enrollment", 
         back_populates="marker_result"
+    )
+
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False
     )
 
     def __repr__(self):

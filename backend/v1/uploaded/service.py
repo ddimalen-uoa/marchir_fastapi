@@ -14,9 +14,11 @@ import zipfile
 import os
 from config.core import engine
 
-from v1.uploaded.service_extension import start_validation
+from v1.uploaded.service_extension import start_validation, start_submit_assignment
 from v1.uploaded.classes.validation_messages_class import ValidationMessages
-from v1.auth.service_extension import CurrentMember, StudentMember
+from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrollment
+
+from v1.marker_result.model import MarkerResult
 
 MAX_ZIP_BYTES = 50 * 1024 * 1024 
 
@@ -43,6 +45,7 @@ def safe_extract_zip(zip_path: Path, extract_to: Path) -> None:
                 raise HTTPException(status_code=400, detail="Invalid zip: path traversal detected")
 
         zf.extractall(extract_to)
+
 
 async def upload_zip(
         member: StudentMember,
@@ -100,6 +103,85 @@ async def upload_zip(
         validation_result = await start_validation(index_path)
 
         return validation_result
+
+
+async def submit_assignment(
+        member: StudentMember,
+        enrollment: CurrentEnrollment,
+        file: UploadFile,
+        db: DbSession = None # type: ignore
+    ):
+    # Basic content-type check (not fully reliable, but helpful)
+    if not file.filename.lower().endswith(".zip"):
+        raise HTTPException(status_code=400, detail="Please upload a .zip file")
+
+    # Put everything in a temp directory so it auto-cleans easily
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        zip_path = tmp_dir / "upload.zip"
+        extract_dir = tmp_dir / "site"
+
+        extract_dir.mkdir(parents=True, exist_ok=True)
+
+        # Save uploaded zip to disk with a size cap
+        total = 0
+        with zip_path.open("wb") as f:
+            while True:
+                chunk = await file.read(1024 * 1024)  # 1MB chunks
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > MAX_ZIP_BYTES:
+                    raise HTTPException(status_code=413, detail="Zip file too large")
+                f.write(chunk)
+
+        # Validate it's a zip
+        if not zipfile.is_zipfile(zip_path):
+            raise HTTPException(status_code=400, detail="Uploaded file is not a valid zip")
+
+        # Extract safely
+        safe_extract_zip(zip_path, extract_dir)
+
+        # Find index.html (common patterns)
+        # - index.html at root
+        # - or inside a single top folder (like dist/index.html)
+        candidates = [
+            extract_dir / "index.html",
+        ]
+
+        # If not at root, search for the first index.html (you can tighten this rule)
+        if not candidates[0].exists():
+            candidates = list(extract_dir.rglob("index.html"))
+
+        if not candidates:
+            raise HTTPException(status_code=400, detail="index.html not found in extracted zip")
+
+        # If multiple, pick the shallowest (closest to root)
+        index_path = sorted(candidates, key=lambda p: len(p.parts))[0]
+
+        submission_output = await start_submit_assignment(index_path)
+        
+        existing_enrollment = db.query(MarkerResult).filter(
+                                     MarkerResult.enrollment_id == enrollment.id
+                              ).first()
+        
+        if existing_enrollment:
+            existing_enrollment.result
+
+            db.commit()
+            db.refresh(existing_enrollment)
+        else:
+            marker_result = MarkerResult(
+                enrollment_id=enrollment.id,
+                upi=member.upi,
+                result=submission_output
+            )
+
+            db.add(marker_result)
+            db.commit()
+            db.refresh(marker_result)
+
+        return True
 
 async def test_me():
     validation_messages_dataframe = ValidationMessages()

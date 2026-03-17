@@ -1,6 +1,6 @@
 import { useAuth } from "../features/auth/useAuth";
 import React, { useRef, useState } from "react";
-import { uploadFile } from "../api/api";
+import { uploadFile, markAssginment } from "../api/api";
 
 // export default function StudentDashboard() {
 //   const { data } = useAuth();
@@ -30,13 +30,14 @@ type ValidationState =
 
 type ApiResponse = Record<string, any[][]>;
 
-function parseValidatorMessages(data: ApiResponse): string[] {
+function parseFailedValidatorMessages(data: ApiResponse): string[] {
   const result: string[] = [];
 
-  Object.entries(data).forEach(([validatorName, items]) => {
+  Object.entries(data.validators).forEach(([validatorName, items]) => {
     items.forEach((item) => {
-      const message = item[2];
-      result.push(`${validatorName}: ${message}`);
+      if (!item.passed) {
+        result.push(`${validatorName}: ${item.message}`);
+      }
     });
   });
 
@@ -67,54 +68,50 @@ export default function StudentDashboard() {
   };
 
   const handleValidate = async () => {
-    const formData = new FormData();
-    
-    if (!selectedFile) return;
+  if (!selectedFile) return;
 
-    setValidationState({ type: "loading" });
-    
-    formData.append("file", selectedFile);
+  const formData = new FormData();
+  formData.append("file", selectedFile);
 
+  setValidationState({ type: "loading" });
+
+  try {
     const response = await uploadFile(formData);
-    const data = await response.json();
+    const data: ApiResponse = await response.json();
 
-    if (response.status != 200)
-    {
-        setValidationState({
-          type: "error",
-          errors: [
-            "Something is wrong with your submission.",
-            "Check index.html is found in zip",
-            "Your zip file might be corrupted.",
-            "Contact d.dimalen@auckland.ac.nz for assistance.",
-          ],
-        });
-        return;
-    }
-
-    const messages = parseValidatorMessages(data);
-
-    // Demo validation logic
-    // Replace this with your real API call.
-    // await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // const lowerName = selectedFile.name.toLowerCase();
-    const shouldFail = true
-    // const shouldFail =
-    //   lowerName.includes("error") ||
-    //   lowerName.includes("invalid") ||
-    //   lowerName.includes("fail");
-
-    if (shouldFail) {
+    if (response.status !== 200) {
       setValidationState({
         type: "error",
-        errors: messages,
+        errors: [
+          "Something is wrong with your submission.",
+          "Check index.html is found in zip.",
+          "Your zip file might be corrupted.",
+          "Contact d.dimalen@auckland.ac.nz for assistance.",
+        ],
+      });
+      return;
+    }
+
+    if (!data.isOk) {
+      const messages = parseFailedValidatorMessages(data);
+
+      setValidationState({
+        type: "error",
+        errors: messages.length > 0 ? messages : ["Validation failed."],
       });
       return;
     }
 
     setValidationState({ type: "success" });
-  };
+  } catch (error) {
+    setValidationState({
+      type: "error",
+      errors: [
+        "An unexpected error occurred while validating your submission.",
+      ],
+    });
+  }
+};
 
   const handleCancel = () => {
     setValidationState({ type: "cancelled" });
@@ -123,8 +120,19 @@ export default function StudentDashboard() {
   const handleSubmit = async () => {
     if (!selectedFile || validationState.type !== "success") return;
 
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
     // Replace this with your actual submit API call.
     await new Promise((resolve) => setTimeout(resolve, 500));
+
+    try {
+        const response = await markAssginment(formData);
+        const data: ApiResponse = await response.json();
+        console.log(data);
+    } catch (error) {
+      
+    }
 
     const submission: SubmissionRecord = {
       fileName: selectedFile.name,

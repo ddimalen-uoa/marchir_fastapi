@@ -7,6 +7,9 @@ from collections.abc import Callable
 from config.core import DbSession
 from v1.user_session.model import UserSession
 from v1.member.model import Member
+from v1.enrollment.model import Enrollment
+from v1.course.model import Course
+
 
 def get_current_member(
     db: DbSession,
@@ -57,3 +60,31 @@ def require_roles(*allowed_roles: str) -> Callable:
 StudentMember = Annotated[Member, Depends(require_roles("student"))]
 TeacherMember = Annotated[Member, Depends(require_roles("teacher"))]
 AdminMember = Annotated[Member, Depends(require_roles("admin"))]
+
+def get_current_enrollment(
+    member: StudentMember,
+    db: DbSession
+) -> Enrollment:
+
+    enrollment = (
+        db.query(Enrollment)
+        .join(Course)
+        .filter(
+            Enrollment.member_id == member.id,
+            Course.is_active == True
+        )
+        .first()
+    )
+
+    if not enrollment:
+        raise HTTPException(
+            status_code=403,
+            detail="Student has no active enrollment"
+        )
+
+    return enrollment
+
+CurrentEnrollment = Annotated[
+    Enrollment,
+    Depends(get_current_enrollment)
+]
