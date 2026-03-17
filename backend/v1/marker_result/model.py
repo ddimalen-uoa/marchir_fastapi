@@ -19,6 +19,8 @@ class MarkerResult(Base):
 
     enrollment_id: Mapped[int] = mapped_column(ForeignKey("enrollment.id"), nullable=False)
 
+    file_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    validation_result: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     upi: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     result: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

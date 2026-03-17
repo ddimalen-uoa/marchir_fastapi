@@ -17,6 +17,16 @@ export async function logout() {
   });
 }
 
+export async function getLastSubmission() {
+  const res = await fetch("https://localhost/api/v1/marker-result-route/get-last-submission", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  return res;
+}
+
+
 export async function uploadFile(formData: FormData) {
   const response = await fetch("https://localhost/api/v1/upload-route/upload-zip", {
       method: "POST",

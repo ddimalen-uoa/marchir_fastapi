@@ -13,6 +13,9 @@ import tempfile
 import zipfile
 import os
 from config.core import engine
+import shutil
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from v1.uploaded.service_extension import start_validation, start_submit_assignment
 from v1.uploaded.classes.validation_messages_class import ValidationMessages
@@ -165,8 +168,12 @@ async def submit_assignment(
                                      MarkerResult.enrollment_id == enrollment.id
                               ).first()
         
+        now = datetime.now(ZoneInfo("Pacific/Auckland"))
+        filename = f"submission_{now.strftime('%m_%Y')}.zip"
+
         if existing_enrollment:
-            existing_enrollment.result
+            existing_enrollment.result = submission_output
+            existing_enrollment.file_name = filename
 
             db.commit()
             db.refresh(existing_enrollment)
@@ -174,12 +181,26 @@ async def submit_assignment(
             marker_result = MarkerResult(
                 enrollment_id=enrollment.id,
                 upi=member.upi,
+                file_name=filename,
+                status="Submitted",
                 result=submission_output
             )
 
             db.add(marker_result)
             db.commit()
             db.refresh(marker_result)
+
+        course_name = enrollment.course.name  # adjust if different
+        upi = member.upi
+
+        safe_course_name = course_name.replace(" ", "_")  # basic sanitization
+        target_dir = Path(f"/marchir/uploads/{safe_course_name}/{upi}")
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        destination = target_dir / filename
+
+        shutil.copy(zip_path, destination)
 
         return True
 
