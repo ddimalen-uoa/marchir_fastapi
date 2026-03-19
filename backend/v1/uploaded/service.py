@@ -168,8 +168,7 @@ async def submit_assignment(
                                      MarkerResult.enrollment_id == enrollment.id
                               ).first()
         
-        now = datetime.now(ZoneInfo("Pacific/Auckland"))
-        filename = f"submission_{now.strftime('%m_%Y')}.zip"
+        filename = f"{member.upi}.zip"
 
         if existing_enrollment:
             existing_enrollment.result = submission_output

@@ -46,3 +46,12 @@ export async function markAssginment(formData: FormData) {
 
   return response;
 }
+
+export async function getActiveCoursesStudentsSubmissions() {
+  const response = await fetch("https://localhost/api/v1/marker-result-route/get-last-submission/active-with-students-and-submissions", {
+    method: "GET",
+    credentials: "include",
+  });
+
+  return response.json();
+}

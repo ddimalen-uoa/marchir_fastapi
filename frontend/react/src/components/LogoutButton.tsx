@@ -9,6 +9,7 @@ export function LogoutButton() {
   const clearRedirectMessage = useAuthStore((state) => state.clearRedirectMessage);
 
   async function handleLogout() {
+    console.log('Logging out');
     try {
       await logoutRequest();
     } finally {

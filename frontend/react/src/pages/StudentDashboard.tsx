@@ -37,6 +37,8 @@ type ValidationState =
 function parseFailedValidatorMessages(data: ValidationApiResponse): string[] {
   const result: string[] = [];
 
+  console.log(data.validators);
+
   Object.entries(data.validators).forEach(([validatorName, items]) => {
     items.forEach((item) => {
       if (!item.passed) {
@@ -150,11 +152,11 @@ export default function StudentDashboard() {
       }
 
       const now = new Date();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const year = now.getFullYear();
+      // const month = String(now.getMonth() + 1).padStart(2, "0");
+      // const year = now.getFullYear();
 
       const submission: SubmissionRecord = {
-        fileName: `submission_${month}_${year}.zip`,
+        fileName: `${data?.member.upi}.zip`,
         submittedAt: now.toLocaleString(),
         status: "Submitted",
         validationResult: "Successful",
@@ -197,7 +199,6 @@ export default function StudentDashboard() {
 
         const submission = mapSubmissionFromApi(data);
         setLastSubmission(submission);
-        // setValidationState({ type: "submitted", submission });
       } catch (error) {
         console.error("Failed to fetch last submission:", error);
       } finally {
