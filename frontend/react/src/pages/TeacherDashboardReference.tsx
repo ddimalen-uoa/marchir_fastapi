@@ -11,9 +11,6 @@ import {
   Eye,
 } from "lucide-react";
 
-// TeacherDashboard
-// Tailwind CSS v4 compatible markup
-// Frontend-only demo with mock data
 
 type SubmissionStatus = "Submitted" | "Late" | "Pending Review";
 type ValidationResult = "Successful" | "Warnings" | "Failed";
@@ -196,21 +193,21 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-md">
+    <div className="p-5 border shadow-2xl rounded-3xl border-white/10 bg-white/5 shadow-black/20 backdrop-blur-md">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-slate-400">{label}</p>
           <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
         </div>
-        <div className="rounded-2xl bg-white/10 p-3 text-slate-200">
-          <Icon className="h-5 w-5" />
+        <div className="p-3 rounded-2xl bg-white/10 text-slate-200">
+          <Icon className="w-5 h-5" />
         </div>
       </div>
     </div>
   );
 }
 
-export default function TeacherDashboard() {
+export default function TeacherDashboardReference() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courses[0]?.id ?? "");
   const [selectedStudentId, setSelectedStudentId] = useState<string>(
     courses[0]?.submissions[0]?.id ?? "",
@@ -258,10 +255,10 @@ export default function TeacherDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen text-white bg-slate-950">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.14),_transparent_30%)]" />
 
-      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="relative px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <header className="mb-8 rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-md">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -271,7 +268,7 @@ export default function TeacherDashboard() {
               <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                 Teacher Dashboard
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+              <p className="max-w-2xl mt-3 text-sm leading-6 text-slate-300 sm:text-base">
                 Review student submissions by course, inspect assignment details, and download
                 individual files, course ZIP exports, or CSV result summaries.
               </p>
@@ -280,23 +277,23 @@ export default function TeacherDashboard() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <a
                 href="#"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white ring-1 ring-inset ring-white/10 transition hover:bg-white/15"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white transition rounded-2xl bg-white/10 ring-1 ring-inset ring-white/10 hover:bg-white/15"
               >
-                <FileDown className="h-4 w-4" />
+                <FileDown className="w-4 h-4" />
                 Download Course ZIP
               </a>
               <a
                 href="#"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-medium text-slate-950 transition hover:brightness-110"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition rounded-2xl bg-sky-500 text-slate-950 hover:brightness-110"
               >
-                <FileSpreadsheet className="h-4 w-4" />
+                <FileSpreadsheet className="w-4 h-4" />
                 Export Results CSV
               </a>
             </div>
           </div>
         </header>
 
-        <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-2 xl:grid-cols-4">
           <StatCard icon={BookOpen} label="Current Courses" value={totalCourses} />
           <StatCard icon={Users} label="Total Submissions" value={totalSubmissions} />
           <StatCard icon={CheckCircle2} label="Successful Validations" value={successfulSubmissions} />
@@ -305,7 +302,7 @@ export default function TeacherDashboard() {
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_360px_minmax(0,1fr)]">
           <aside className="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-md">
-            <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-lg font-semibold text-white">Courses</h2>
                 <p className="text-sm text-slate-400">Select a course to view submissions</p>
@@ -336,11 +333,11 @@ export default function TeacherDashboard() {
                         <h3 className="mt-1 text-base font-semibold text-white">{course.title}</h3>
                         <p className="mt-1 text-xs text-slate-400">{course.term}</p>
                       </div>
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+                      <span className="px-3 py-1 text-xs rounded-full bg-white/10 text-slate-200">
                         {course.submissions.length}
                       </span>
                     </div>
-                    <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                    <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
                       <span>{course.totalStudents} students</span>
                       <span>{course.submissions.length} submitted</span>
                     </div>
@@ -351,7 +348,7 @@ export default function TeacherDashboard() {
           </aside>
 
           <section className="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-md">
-            <div className="mb-4 flex flex-col gap-4">
+            <div className="flex flex-col gap-4 mb-4">
               <div>
                 <h2 className="text-lg font-semibold text-white">Student Submissions</h2>
                 <p className="text-sm text-slate-400">
@@ -360,12 +357,12 @@ export default function TeacherDashboard() {
               </div>
 
               <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Search className="absolute w-4 h-4 -translate-y-1/2 pointer-events-none left-4 top-1/2 text-slate-500" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search by name, ID, email, or file"
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/60 py-3 pl-11 pr-4 text-sm text-white outline-none ring-0 placeholder:text-slate-500 focus:border-sky-400/40"
+                  className="w-full py-3 pr-4 text-sm text-white border outline-none rounded-2xl border-white/10 bg-slate-950/60 pl-11 ring-0 placeholder:text-slate-500 focus:border-sky-400/40"
                 />
               </div>
             </div>
@@ -397,7 +394,7 @@ export default function TeacherDashboard() {
                         </span>
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-4 text-xs text-slate-400">
+                      <div className="flex items-center justify-between gap-4 mt-3 text-xs text-slate-400">
                         <span className="truncate">{submission.fileName}</span>
                         <span>{submission.submittedAt}</span>
                       </div>
@@ -405,7 +402,7 @@ export default function TeacherDashboard() {
                   );
                 })
               ) : (
-                <div className="rounded-3xl border border-dashed border-white/10 bg-slate-950/40 px-4 py-10 text-center text-sm text-slate-400">
+                <div className="px-4 py-10 text-sm text-center border border-dashed rounded-3xl border-white/10 bg-slate-950/40 text-slate-400">
                   No submissions matched your search.
                 </div>
               )}
@@ -415,7 +412,7 @@ export default function TeacherDashboard() {
           <section className="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-2xl shadow-black/20 backdrop-blur-md">
             {selectedSubmission ? (
               <>
-                <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-4 pb-5 border-b border-white/10 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-sm font-medium text-sky-300">Submission Details</p>
                     <h2 className="mt-1 text-2xl font-semibold text-white">
@@ -441,27 +438,27 @@ export default function TeacherDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 py-5 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+                  <div className="p-4 border rounded-3xl border-white/10 bg-slate-950/50">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Submitted at</p>
                     <p className="mt-2 text-sm font-medium text-white">{selectedSubmission.submittedAt}</p>
                   </div>
-                  <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+                  <div className="p-4 border rounded-3xl border-white/10 bg-slate-950/50">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Score</p>
                     <p className="mt-2 text-sm font-medium text-white">{selectedSubmission.score}</p>
                   </div>
-                  <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+                  <div className="p-4 border rounded-3xl border-white/10 bg-slate-950/50">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-500">File name</p>
-                    <p className="mt-2 break-all text-sm font-medium text-white">{selectedSubmission.fileName}</p>
+                    <p className="mt-2 text-sm font-medium text-white break-all">{selectedSubmission.fileName}</p>
                   </div>
-                  <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+                  <div className="p-4 border rounded-3xl border-white/10 bg-slate-950/50">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-500">File size</p>
                     <p className="mt-2 text-sm font-medium text-white">{selectedSubmission.fileSize}</p>
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-slate-950/50 p-4">
+                <div className="p-4 border rounded-3xl border-white/10 bg-slate-950/50">
                   <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-slate-400" />
+                    <Eye className="w-4 h-4 text-slate-400" />
                     <h3 className="text-sm font-semibold text-white">Submission Results</h3>
                   </div>
 
@@ -469,7 +466,7 @@ export default function TeacherDashboard() {
                     {selectedSubmission.notes.map((note, index) => (
                       <li
                         key={`${selectedSubmission.id}-note-${index}`}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300"
+                        className="px-4 py-3 text-sm border rounded-2xl border-white/10 bg-white/5 text-slate-300"
                       >
                         {note}
                       </li>
@@ -477,19 +474,19 @@ export default function TeacherDashboard() {
                   </ul>
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 mt-5 sm:grid-cols-2">
                   <a
                     href={selectedSubmission.downloadUrl}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition rounded-2xl bg-sky-500 text-slate-950 hover:brightness-110"
                   >
-                    <Download className="h-4 w-4" />
+                    <Download className="w-4 h-4" />
                     Download Assignment
                   </a>
                   <a
                     href="#"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-semibold text-white ring-1 ring-inset ring-white/10 transition hover:bg-white/15"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white transition rounded-2xl bg-white/10 ring-1 ring-inset ring-white/10 hover:bg-white/15"
                   >
-                    <FileSpreadsheet className="h-4 w-4" />
+                    <FileSpreadsheet className="w-4 h-4" />
                     Download Result CSV
                   </a>
                 </div>

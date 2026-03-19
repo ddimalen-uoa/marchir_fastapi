@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 
 from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,9 +29,11 @@ class Enrollment(Base):
         "Course", 
         back_populates="enrollments"
     )
-    marker_result: Mapped["MarkerResult"] = relationship(
+
+    marker_results: Mapped[List["MarkerResult"]] = relationship(
         "MarkerResult",
-        back_populates="enrollment"
+        back_populates="enrollment",
+        cascade="all, delete-orphan"
     )
 
     def __repr__(self):

@@ -2,9 +2,11 @@ import { createBrowserRouter } from "react-router";
 
 import LoginPage from "../pages/LoginPage";
 import StudentDashboard from "../pages/StudentDashboard";
-import TeacherDashboard from "../pages/TeacherDashboard";
+import TeacherDashboard from "../pages/TeacherDashboard/TeacherDashboard";
 import AdminDashboard from "../pages/AdminDashboard";
 import NotFoundPage from "../pages/NotFoundPage";
+
+import TeacherDashboardReference from "../pages/TeacherDashboardReference";
 
 import { AppShell } from "../components/AppShell";
 import { RequireAuth } from "../features/auth/RequireAuth";
@@ -29,6 +31,14 @@ export const router = createBrowserRouter([
                 path: "/student",
                 element: <StudentDashboard />,
               },
+              {
+                path: "/student/test",
+                element: <TeacherDashboard />,
+              },              
+              {
+                path: "/student/reference",
+                element: <TeacherDashboardReference />,
+              },
             ],
           },
           {
@@ -36,7 +46,7 @@ export const router = createBrowserRouter([
             children: [
               {
                 path: "/teacher",
-                element: <TeacherDashboard />,
+                element: <TeacherDashboard />,                
               },
             ],
           },

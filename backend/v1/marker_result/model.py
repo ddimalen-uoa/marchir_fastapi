@@ -27,8 +27,8 @@ class MarkerResult(Base):
 
     # Relationship""
     enrollment: Mapped["Enrollment"] = relationship(
-        "Enrollment", 
-        back_populates="marker_result"
+        "Enrollment",
+        back_populates="marker_results"
     )
 
     submitted_at: Mapped[datetime] = mapped_column(
@@ -36,4 +36,4 @@ class MarkerResult(Base):
     )
 
     def __repr__(self):
-        return f"<MarkerResult(upi={self.upi}, course_code={self.course_code})>"    
+        return f"<MarkerResult(upi={self.upi})>"    

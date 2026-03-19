@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     OAUTH_TOKEN_URL: str
     OAUTH_USERINFO_URL: str
     OAUTH_REDIRECT_URI: str
+    OAUTH_EXTRA_SCOPE: str
     OAUTH_CLIENT_SECRET: str = ''
     FRONTEND_URL: str
     SESSION_SECRET: str

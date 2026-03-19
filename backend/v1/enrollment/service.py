@@ -8,6 +8,9 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
+from config.core import DbSession
+from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrollment, AdminMember
+
 from ldap3 import Server, Connection, ALL, SUBTREE
 
 from config.config_loader import settings
@@ -200,6 +203,8 @@ def check_or_add_student(student, db: Session):
         upi=student["UPI"],
         first_name=student["GivenName"],
         last_name=student["DisplayName"].replace(student["GivenName"], ""),
+        email=student["UPI"]+"@aucklanduni.ac.nz",
+        role="student"
     )
 
     db.add(new_member)
@@ -247,7 +252,10 @@ async def process_course(
     return student_list
 
 
-async def get_auto_enroll_module(db: Session):
+async def get_auto_enroll_module(
+        member: AdminMember,
+        db: DbSession = None
+):
     courses = db.query(Course).filter(Course.is_active).all()
 
     timeout = httpx.Timeout(20.0, connect=10.0)
