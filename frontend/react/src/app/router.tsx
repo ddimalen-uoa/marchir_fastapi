@@ -48,6 +48,10 @@ export const router = createBrowserRouter([
                 path: "/teacher",
                 element: <TeacherDashboard />,                
               },
+              {
+                path: "/teacher/reference",
+                element: <TeacherDashboardReference />,
+              },               
             ],
           },
           {
