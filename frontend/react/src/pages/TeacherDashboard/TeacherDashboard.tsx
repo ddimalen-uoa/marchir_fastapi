@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Users } from "lucide-react";
+import { 
+  BookOpen, 
+  Users,
+  FileSpreadsheet
+} from "lucide-react";
 import { useAuth } from "@/features/auth/useAuth";
 
 import StatCard from "./components/StatCard";
-import { getActiveCoursesStudentsSubmissions } from "@/api/api";
+import { getActiveCoursesStudentsSubmissions, downloadCourseZip, downloadCsv } from "@/api/api";
 import type { Course } from "@/types/course";
 
 export default function TeacherDashboard() {
@@ -13,6 +17,54 @@ export default function TeacherDashboard() {
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleCSVDownload = async (courseId: number) => {
+      const response = await downloadCsv(courseId);
+
+      if (!response.ok) {
+        throw new Error("Failed to download CSV");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "marker_results.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+  }
+
+
+  const handleZipDownload = async (course: string) => {
+        try {
+        const formData = new FormData();
+        formData.append("course", course);
+
+        const response = await downloadCourseZip(formData);
+
+        if (!response.ok) {
+          throw new Error("Failed to download zip");
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${course.replace(/\./g, "")}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+      }
+  }
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -106,7 +158,7 @@ export default function TeacherDashboard() {
                   className={`w-full rounded-3xl border p-4 text-left transition ${
                     active
                       ? "border-slate-600 bg-slate-600 shadow-sm"
-                      : "border-slate-200 bg-slate-100 hover:bg-slate-300 cursor-pointer"
+                      : "border-slate-200 bg-slate-100 hover:bg-slate-300"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -130,7 +182,29 @@ export default function TeacherDashboard() {
                       </p>
                     </div>
 
-                    <span
+                    <div>
+                        <a className={`inline-flex items-center justify-center gap-2 px-4 py-3 mr-2 text-xs font-medium transition rounded-2xl cursor-pointer ${
+                            active
+                              ? "bg-white/10 ring-1 ring-inset ring-white/10 hover:bg-white/15"
+                              : "bg-white/10 ring-1 ring-inset ring-white/10 hover:bg-white/15"
+                            }`}
+                            onClick={() => handleZipDownload(course?.name ?? "")}
+                            >
+                            <FileSpreadsheet className="w-4 h-4" />
+                            Zip Files
+                        </a>
+                        <a className={`inline-flex items-center justify-center gap-2 px-4 py-3 text-xs font-medium transition rounded-2xl cursor-pointer ${
+                            active
+                              ? "bg-sky-500 text-slate-950 hover:brightness-110"
+                              : "bg-sky-500 text-slate-950 hover:brightness-110"
+                            }`}
+                            onClick={() => handleCSVDownload(course?.id)}
+                            >
+                            <FileSpreadsheet className="w-4 h-4" />
+                            Assignment Results (CSV)
+                        </a>
+                    </div>
+                    {/* <span
                       className={`px-3 py-1 text-xs rounded-full ${
                         active
                           ? "bg-white/10 text-slate-200"
@@ -138,7 +212,7 @@ export default function TeacherDashboard() {
                       }`}
                     >
                       {course.submitted_students.length}
-                    </span>
+                    </span> */}
                   </div>
 
                   <div className={`flex items-center justify-between mt-4 text-xs ${

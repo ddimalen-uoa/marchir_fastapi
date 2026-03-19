@@ -38,7 +38,6 @@ async def submit_assignment_route(
         db
     )
 
-
 @router.post("/test-me")
 async def test_me_route():
     return await service.test_me()

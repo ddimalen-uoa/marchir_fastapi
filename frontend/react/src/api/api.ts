@@ -55,3 +55,22 @@ export async function getActiveCoursesStudentsSubmissions() {
 
   return response.json();
 }
+
+export async function downloadCourseZip (formData: FormData) {
+    const response = await fetch("https://localhost/api/v1/marker-result-route/download-zip-course", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+  });
+
+  return response;
+}
+
+export async function downloadCsv (courseId: number) {
+  const response = await fetch(`https://localhost/api/v1/marker-result-route/download-marker-results-csv/${courseId}`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  return response;
+}
