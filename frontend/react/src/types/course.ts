@@ -32,3 +32,13 @@ export type Course = {
 export type CoursesResponse = {
   courses: Course[];
 };
+
+export type CourseEnrolled = {
+  id: string;
+  name: string;
+  course_code: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  enrolled_students: number;
+};

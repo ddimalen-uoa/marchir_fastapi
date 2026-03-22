@@ -7,7 +7,7 @@ from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrol
 
 router = APIRouter(
     prefix='/marker-result-route',
-    tags=['Maker Result Route']
+    tags=['Marker Result Route']
 )
 
 

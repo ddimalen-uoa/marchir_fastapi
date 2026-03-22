@@ -6,7 +6,7 @@ from typing import List, Any
 import httpx
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from config.core import DbSession
 from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrollment, AdminMember
@@ -18,6 +18,8 @@ from config.config_loader import settings
 from v1.course.model import Course
 from v1.enrollment.model import Enrollment
 from v1.member.model import Member
+
+from v1.enrollment.schema import CourseListItemResponse
 
 
 def is_semester_matched(semester: str, date_str: str, year: int) -> bool:
@@ -287,3 +289,44 @@ async def get_auto_enroll_module(
             )
 
     return results
+
+async def get_courses_and_enrollment(
+        member: AdminMember,
+        db: DbSession = None
+):
+    stmt = (
+        select(
+            Course.id,
+            Course.name,
+            Course.course_code,
+            Course.start_date,
+            Course.end_date,
+            Course.is_active,
+            func.count(Enrollment.id).label("enrolled_students"),
+        )
+        .outerjoin(Enrollment, Enrollment.course_id == Course.id)
+        .group_by(
+            Course.id,
+            Course.name,
+            Course.course_code,
+            Course.start_date,
+            Course.end_date,
+            Course.is_active,
+        )
+        .order_by(Course.id)
+    )
+
+    results = db.execute(stmt).all()
+
+    return [
+        CourseListItemResponse(
+            id=row.id,
+            name=row.name,
+            course_code=row.course_code,
+            start_date=row.start_date.date() if row.start_date else None,
+            end_date=row.end_date.date() if row.end_date else None,
+            is_active=row.is_active,
+            enrolled_students=row.enrolled_students,
+        )
+        for row in results
+    ]    
