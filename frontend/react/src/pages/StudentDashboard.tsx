@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../features/auth/useAuth";
-import { uploadFile, markAssginment, getLastSubmission } from "../api/api";
+import { uploadFile, markAssignment, getLastSubmission } from "../api/api";
 
 type ValidatorItem = {
   passed: boolean;
@@ -141,7 +141,7 @@ export default function StudentDashboard() {
     setValidationState({ type: "submitting" });
 
     try {
-      const response = await markAssginment(formData);
+      const response = await markAssignment(formData);
 
       if (!response.ok) {
         setValidationState({

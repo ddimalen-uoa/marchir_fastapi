@@ -16,3 +16,11 @@ async def get_auto_enroll_route(
     db: DbSession = None
 ):
     return await service.get_auto_enroll_module(member, db)
+
+
+@router.get("/get-courses-and-enrollment")
+async def get_courses_and_enrollment_route(
+    member: AdminMember,
+    db: DbSession = None
+):
+    return await service.get_courses_and_enrollment(member, db)

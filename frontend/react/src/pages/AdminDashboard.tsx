@@ -3,22 +3,17 @@ import {
   BookOpen,
   CalendarDays,
   CirclePlus,
+  UserPlus,
   LoaderCircle,
-  Power,
+  // Power,
   Search,
-  Users,
+  PauseCircle,
+  // Users,
 } from "lucide-react";
+import { type CourseEnrolled } from "@/types/course";
+import { getCoursesAndEnrollments, runAutoEnrollment, addNewCourse, updateCourse } from "../api/api";
 import { useAuth } from "../features/auth/useAuth";
-
-type Course = {
-  id: string;
-  name: string;
-  course_code: string;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  enrolled_students: number;
-};
+import { delay } from "@/features/utilities/delaysTimer";
 
 type CourseFormState = {
   name: string;
@@ -29,75 +24,12 @@ type CourseFormState = {
   enrolled_students: number;
 };
 
-const mockApiCourses: Course[] = [
-  {
-    id: "1",
-    name: "Introduction to Programming",
-    course_code: "COMPSCI101",
-    start_date: "2026-02-23",
-    end_date: "2026-06-20",
-    is_active: true,
-    enrolled_students: 128,
-  },
-  {
-    id: "2",
-    name: "Database Systems",
-    course_code: "COMPSCI220",
-    start_date: "2026-02-23",
-    end_date: "2026-06-20",
-    is_active: true,
-    enrolled_students: 94,
-  },
-  {
-    id: "3",
-    name: "Web Development Fundamentals",
-    course_code: "SOFTENG206",
-    start_date: "2026-07-13",
-    end_date: "2026-11-07",
-    is_active: false,
-    enrolled_students: 73,
-  },
-  {
-    id: "4",
-    name: "Human Computer Interaction",
-    course_code: "SOFTENG350",
-    start_date: "2026-07-13",
-    end_date: "2026-11-07",
-    is_active: true,
-    enrolled_students: 56,
-  },
-  {
-    id: "5",
-    name: "Algorithms and Data Structures",
-    course_code: "COMPSCI225",
-    start_date: "2026-02-23",
-    end_date: "2026-06-20",
-    is_active: true,
-    enrolled_students: 102,
-  },
-  {
-    id: "6",
-    name: "Operating Systems",
-    course_code: "COMPSCI210",
-    start_date: "2026-07-13",
-    end_date: "2026-11-07",
-    is_active: true,
-    enrolled_students: 88,
-  },
-  {
-    id: "7",
-    name: "Software Architecture",
-    course_code: "SOFTENG325",
-    start_date: "2026-07-13",
-    end_date: "2026-11-07",
-    is_active: false,
-    enrolled_students: 41,
-  },
-];
+const fetchCourses = async (): Promise<CourseEnrolled[]> => {
+  const courses = await getCoursesAndEnrollments();
 
-const fetchCourses = async (): Promise<Course[]> => {
-  await new Promise((resolve) => setTimeout(resolve, 400));
-  return mockApiCourses;
+  await delay(1000);
+  
+  return courses;
 };
 
 const emptyFormState: CourseFormState = {
@@ -146,22 +78,23 @@ const StatCard = ({
   );
 };
 
-const FullPageLoader = ({ isVisible }: { isVisible: boolean }) => {
+const FullPageLoader = ({ isVisible, loaderMessage }: { isVisible: boolean, loaderMessage: string }) => {
   if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-sm">
       <div className="flex flex-col items-center gap-3 px-8 py-6 border shadow-xl rounded-3xl border-slate-200 bg-white/90">
         <LoaderCircle className="w-8 h-8 animate-spin text-slate-700" />
-        <p className="text-sm font-medium text-slate-600">Loading courses...</p>
+        <p className="text-sm font-medium text-slate-600">{loaderMessage}</p>
       </div>
     </div>
   );
 };
 
 export default function AdminDashboard() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseEnrolled[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+  const [activeLoaderMessage, setActiveLoaderMessage] = useState("Loading courses...");
   const [showPageLoader, setShowPageLoader] = useState(false);
   const [coursesError, setCoursesError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -175,11 +108,44 @@ export default function AdminDashboard() {
 
   const coursesPerPage = 5;
 
+  const autoEnrollStudents = async () => {
+    let isMounted = true;
+    
+    setActiveLoaderMessage("Auto enrollment is now in progress...");
+    setShowPageLoader(true);
+    setCoursesError(null);
+    await runAutoEnrollment();
+    try {
+      setIsLoadingCourses(true);
+      setCoursesError(null);
+      
+      const data = await fetchCourses();
+
+      if (!isMounted) return;
+
+      setCourses(data);
+      setSelectedCourseId((prev) => prev || data[0]?.id || "");
+    } catch (error) {
+      if (!isMounted) return;
+      
+        console.error("Failed to load courses", error);
+        setCoursesError("Failed to load courses.");      
+    } finally {
+        if (isMounted) {
+          setIsLoadingCourses(false);
+          setShowPageLoader(false);
+        }
+    }
+    
+    return true;
+  }
+
   useEffect(() => {
     let isMounted = true;
 
     const loadCourses = async () => {
       try {
+        setActiveLoaderMessage("Loading courses...");
         setIsLoadingCourses(true);
         setShowPageLoader(true);
         setCoursesError(null);
@@ -261,16 +227,21 @@ export default function AdminDashboard() {
 
   const inactiveCoursesCount = courses.length - activeCoursesCount;
 
-  const totalEnrolledStudents = useMemo(() => {
-    return courses.reduce((sum, course) => sum + course.enrolled_students, 0);
-  }, [courses]);
+  // const totalEnrolledStudents = useMemo(() => {
+  //   return courses.reduce((sum, course) => sum + course.enrolled_students, 0);
+  // }, [courses]);
 
   const resetAddForm = () => {
     setNewCourse(emptyFormState);
     setShowAddCourseForm(false);
   };
+  
+  const waitForNextPaint = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
 
-  const handleAddCourse = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleAddCourse = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (
@@ -282,21 +253,41 @@ export default function AdminDashboard() {
       return;
     }
 
-    const createdCourse: Course = {
-      id: crypto.randomUUID(),
-      name: newCourse.name.trim(),
-      course_code: newCourse.course_code.trim(),
-      start_date: newCourse.start_date,
-      end_date: newCourse.end_date,
-      is_active: newCourse.is_active,
-      enrolled_students: Number(newCourse.enrolled_students) || 0,
-    };
+    const formData = new FormData();
+    formData.append("name", newCourse.name.trim());
+    formData.append("course_code", newCourse.course_code.trim());
+    formData.append("start_date", newCourse.start_date);
+    formData.append("end_date", newCourse.end_date);
+    formData.append("is_active", newCourse.is_active ? "true" : "false");
 
-    setCourses((prev) => [createdCourse, ...prev]);
-    setSelectedCourseId(createdCourse.id);
-    setCurrentPage(1);
-    setIsEditingCourse(false);
-    resetAddForm();
+    try {
+      setActiveLoaderMessage("Adding new course...");
+      setShowPageLoader(true);
+
+      await waitForNextPaint();
+
+      const courseData = await addNewCourse(formData);
+
+      await delay(1000);
+
+      const createdCourse: CourseEnrolled = {
+        id: courseData.course.id,
+        name: newCourse.name.trim(),
+        course_code: newCourse.course_code.trim(),
+        start_date: newCourse.start_date,
+        end_date: newCourse.end_date,
+        is_active: newCourse.is_active,
+        enrolled_students: Number(newCourse.enrolled_students) || 0,
+      };
+
+      setCourses((prev) => [createdCourse, ...prev]);
+      setSelectedCourseId(createdCourse.id);
+      setCurrentPage(1);
+      setIsEditingCourse(false);
+      resetAddForm();
+    } finally {
+      setShowPageLoader(false);
+    }
   };
 
   const startEditingCourse = () => {
@@ -314,8 +305,9 @@ export default function AdminDashboard() {
     setShowAddCourseForm(false);
   };
 
-  const handleUpdateCourse = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleUpdateCourse = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formData = new FormData();
 
     if (
       !selectedCourse ||
@@ -327,23 +319,42 @@ export default function AdminDashboard() {
       return;
     }
 
-    setCourses((prev) =>
-      prev.map((course) =>
-        course.id === selectedCourse.id
-          ? {
-              ...course,
-              name: editCourse.name.trim(),
-              course_code: editCourse.course_code.trim(),
-              start_date: editCourse.start_date,
-              end_date: editCourse.end_date,
-              is_active: editCourse.is_active,
-              enrolled_students: Number(editCourse.enrolled_students) || 0,
-            }
-          : course,
-      ),
-    );
+    formData.append("name", editCourse.name.trim());
+    formData.append("course_code", editCourse.course_code.trim());
+    formData.append("start_date", editCourse.start_date);
+    formData.append("end_date", editCourse.end_date);
+    formData.append("is_active", editCourse.is_active ? "true" : "false");
 
-    setIsEditingCourse(false);
+    try {
+      setActiveLoaderMessage("Updating course...");
+      setShowPageLoader(true);    
+
+      await waitForNextPaint();
+
+      await updateCourse(formData, selectedCourse.id.toString());
+
+      await delay(1000);
+
+      setIsLoadingCourses(false);
+
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.id === selectedCourse.id
+            ? {
+                ...course,
+                name: editCourse.name.trim(),
+                course_code: editCourse.course_code.trim(),
+                start_date: editCourse.start_date,
+                end_date: editCourse.end_date,
+                is_active: editCourse.is_active,
+                enrolled_students: Number(editCourse.enrolled_students) || 0,
+              }
+            : course,
+        ),
+      );
+    } finally {
+      setShowPageLoader(false);
+    }
   };
 
   const handleSelectCourse = (courseId: string) => {
@@ -363,7 +374,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
-      <FullPageLoader isVisible={showPageLoader} />
+      <FullPageLoader isVisible={showPageLoader} loaderMessage={activeLoaderMessage} />
 
       <div className={showPageLoader ? "pointer-events-none blur-[2px]" : ""}>
         <header className="bg-white border-b border-slate-200">
@@ -382,11 +393,11 @@ export default function AdminDashboard() {
         </header>
 
         <main className="px-6 py-8 mx-auto max-w-7xl">
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid gap-4 md:grid-cols-3">
             <StatCard icon={BookOpen} label="Total Courses" value={courses.length} />
-            <StatCard icon={Power} label="Active Courses" value={activeCoursesCount} />
+            <StatCard icon={PauseCircle} label="Active Courses" value={activeCoursesCount} />
             <StatCard icon={CalendarDays} label="Inactive Courses" value={inactiveCoursesCount} />
-            <StatCard icon={Users} label="Total Enrolled" value={totalEnrolledStudents} />
+            {/* <StatCard icon={Users} label="Total Enrolled" value={totalEnrolledStudents} /> */}
           </section>
 
           {showAddCourseForm && (
@@ -400,7 +411,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              <form onSubmit={handleAddCourse} className="grid gap-5 md:grid-cols-2">
+              <form onSubmit={(event) => handleAddCourse(event)} className="grid gap-5 md:grid-cols-2">
                 <label className="space-y-2">
                   <span className="text-sm font-medium text-slate-700">Course Name</span>
                   <input
@@ -447,7 +458,7 @@ export default function AdminDashboard() {
                   />
                 </label>
 
-                <label className="space-y-2 md:col-span-2">
+                {/* <label className="space-y-2 md:col-span-2">
                   <span className="text-sm font-medium text-slate-700">Enrolled Students</span>
                   <input
                     type="number"
@@ -462,7 +473,7 @@ export default function AdminDashboard() {
                     placeholder="Enter number of enrolled students"
                     className="w-full px-4 py-3 text-sm transition bg-white border outline-none rounded-2xl border-slate-300 focus:border-slate-400"
                   />
-                </label>
+                </label> */}
 
                 <label className="flex items-center gap-3 px-4 py-3 border rounded-2xl border-slate-200 bg-slate-50 md:col-span-2">
                   <input
@@ -496,7 +507,16 @@ export default function AdminDashboard() {
           <section className="mt-8 grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
             <aside className="p-5 bg-white border shadow-sm rounded-3xl border-slate-200">
               <div className="mb-4">
-                <div className="flex justify-end mb-2">
+                <div className="flex items-center justify-between mb-6">
+                      <button
+                        type="button"
+                        onClick={() => autoEnrollStudents()}
+                        className="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-white transition bg-green-500 rounded-2xl hover:bg-green-400"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        Auto Enroll Students
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => {
@@ -508,7 +528,7 @@ export default function AdminDashboard() {
                         <CirclePlus className="w-4 h-4" />
                         Add New Course
                       </button>
-                </div>
+                </div>              
                 <h2 className="text-lg font-semibold tracking-tight text-slate-900">
                   Available Courses
                 </h2>
@@ -668,7 +688,7 @@ export default function AdminDashboard() {
                   </div>
 
                   {isEditingCourse ? (
-                    <form onSubmit={handleUpdateCourse} className="grid gap-5 mt-6 md:grid-cols-2">
+                    <form onSubmit={(event) => handleUpdateCourse(event)} className="grid gap-5 mt-6 md:grid-cols-2">
                       <label className="space-y-2">
                         <span className="text-sm font-medium text-slate-700">Course Name</span>
                         <input
@@ -713,7 +733,7 @@ export default function AdminDashboard() {
                         />
                       </label>
 
-                      <label className="space-y-2">
+                      {/* <label className="space-y-2">
                         <span className="text-sm font-medium text-slate-700">Enrolled Students</span>
                         <input
                           type="number"
@@ -727,7 +747,7 @@ export default function AdminDashboard() {
                           }
                           className="w-full px-4 py-3 text-sm transition bg-white border outline-none rounded-2xl border-slate-300 focus:border-slate-400"
                         />
-                      </label>
+                      </label> */}
 
                       <label className="flex items-center gap-3 px-4 py-3 border rounded-2xl border-slate-200 bg-slate-50">
                         <input
