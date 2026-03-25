@@ -24,6 +24,14 @@ async def find_element_by_xpath(page: Page, xpath: str):
     # If you specifically want the first matching form
     return locator.first
 
+async def get_element_with_tag_name(page, tag_name):
+    locator = page.locator(tag_name)
+
+    if await locator.count() == 0:
+        return None
+
+    return locator.first
+
 async def element_count_from_xpath(page: Page, xpath: str):
     locator = page.locator(f"xpath={xpath}")
 
@@ -92,12 +100,8 @@ async def execute_marker(page: Page):
 
     # Take a screenshot of the page
     await page.screenshot(path="/uploads/test.png", full_page=True)
-    
-    print("Done Screenshot")
 
     marker_results = {}
-    
-    print("Start Marker")
 
     for marker_name in config.marker_functions.keys():
         marker_function_results = await config.marker_functions[marker_name](page, marker_results)
@@ -105,7 +109,108 @@ async def execute_marker(page: Page):
         for marker_title in marker_function_results.keys():
             marker_result = marker_function_results[marker_title]
             marker_results[marker_title] = marker_result
-    
-    print(json.dumps(marker_results))
 
     return "Done Screenshot"
+
+async def is_displayed(element) -> bool:
+    try:
+        return await element.is_visible()
+    except Exception:
+        return False
+    
+async def get_element_with_xpath(scope, xpath: str):
+    try:
+        locator = scope.locator(f"xpath={xpath}").first
+        count = await locator.count()
+        return locator if count > 0 else None
+    except Exception:
+        return None
+    
+async def get_elements_with_xpath(scope, xpath: str):
+    try:
+        locator = scope.locator(f"xpath={xpath}")
+        count = await locator.count()
+        print("get_elements_with_xpath count", count)
+        return [locator.nth(i) for i in range(count)]
+    except Exception:
+        return []
+    
+async def get_text(element):
+    try:
+        text = await element.inner_text()
+        stripped = text.strip()
+        return stripped if stripped else None
+    except Exception:
+        return None
+    
+async def get_attribute(element, attribute: str):
+    try:
+        return await element.get_attribute(attribute)
+    except Exception:
+        return None
+    
+async def get_tag_name(element):
+    try:
+        return await element.evaluate("(el) => el.tagName.toLowerCase()")
+    except Exception:
+        return None
+    
+async def wait_for_clickable_element_with_id(page, element_id: str, timeout: int = 10000):
+    locator = page.locator(f"#{element_id}").first
+    await locator.wait_for(state="visible", timeout=timeout)
+    return locator
+    
+async def wait_for_visible_element_with_id(page, element_id: str, timeout: int = 10000):
+    locator = page.locator(f"#{element_id}").first
+    await locator.wait_for(state="visible", timeout=timeout)
+    return locator
+
+async def click_element(element):
+    return await element.click()
+
+async def get_css_property(element, css_property: str):
+    try:
+        return await element.evaluate(
+            "(el, prop) => window.getComputedStyle(el).getPropertyValue(prop)",
+            css_property,
+        )
+    except Exception:
+        return None
+    
+async def get_element_with_css_selector(scope, selector: str):
+    try:
+        locator = scope.locator(selector).first
+        count = await locator.count()
+        return locator if count > 0 else None
+    except Exception:
+        return None
+
+
+async def get_elements_with_css_selector(scope, selector: str):
+    try:
+        locator = scope.locator(selector)
+        count = await locator.count()
+        return [locator.nth(i) for i in range(count)]
+    except Exception:
+        return []
+
+async def get_computed_styles(element):
+    try:
+        return await element.evaluate("""
+            (el) => {
+                const s = window.getComputedStyle(el);
+                return {
+                    color: s.getPropertyValue("color"),
+                    backgroundColor: s.getPropertyValue("background-color"),
+                    backgroundImage: s.getPropertyValue("background-image"),
+                    fontSize: s.getPropertyValue("font-size"),
+                    fontWeight: s.getPropertyValue("font-weight"),
+                    position: s.getPropertyValue("position"),
+                    display: s.getPropertyValue("display"),
+                    visibility: s.getPropertyValue("visibility"),
+                    opacity: s.getPropertyValue("opacity"),
+                };
+            }
+        """)
+    except Exception:
+        return None
