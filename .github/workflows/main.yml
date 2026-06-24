@@ -1,0 +1,178 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: marchirFastApi CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: Production
+    
+    strategy:
+       matrix:
+         node-version: [20.x]
+
+    env:
+      DPORT_NGINX_HOST_HTTP: ${{ vars.DPORT_NGINX_HOST_HTTP }}
+      DPORT_NGINX_HOST_HTTPS: ${{ vars.DPORT_NGINX_HOST_HTTPS }}
+      DPORT_NGINX_CONTAINER_HTTP: ${{ vars.DPORT_NGINX_CONTAINER_HTTP }}
+      DPORT_NGINX_CONTAINER_HTTPS: ${{ vars.DPORT_NGINX_CONTAINER_HTTPS }}
+      DPORT_BACKEND_HOST: ${{ vars.DPORT_BACKEND_HOST }}
+      DPORT_BACKEND_CONTAINER: ${{ vars.DPORT_BACKEND_CONTAINER }}
+      DPORT_DB_HOST: ${{ vars.DPORT_DB_HOST }}
+      DPORT_DB_CONTAINER: ${{ vars.DPORT_DB_CONTAINER }}
+      
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+      
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }}
+
+      ENROLLMENT_API_URL: ${{ secrets.ENROLLMENT_API_URL }}
+      COURSE_API_URL: ${{ secrets.COURSE_API_URL }}
+      API_TOKEN: ${{ secrets.API_TOKEN }}
+
+      LDAP_SERVER_URL: ${{ secrets.LDAP_SERVER_URL }}
+      LDAP_USER_DN: ${{ secrets.LDAP_USER_DN }}
+      LDAP_PASSWORD: ${{ secrets.LDAP_PASSWORD }}
+
+      OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+      OAUTH_AUTHORIZE_URL: ${{ vars.OAUTH_AUTHORIZE_URL }}
+      OAUTH_TOKEN_URL: ${{ vars.OAUTH_TOKEN_URL }}
+      OAUTH_USERINFO_URL: ${{ vars.OAUTH_USERINFO_URL }}
+      OAUTH_REDIRECT_URI: ${{ vars.OAUTH_REDIRECT_URI }}
+      OAUTH_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+      OAUTH_EXTRA_SCOPE: ${{ secrets.OAUTH_EXTRA_SCOPE }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      
+      BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
+      DOMAIN: ${{ vars.DOMAIN }}
+    
+    steps:
+      - name: Fix workspace ownership
+        run: |
+          sudo chown -R $USER:$USER "$GITHUB_WORKSPACE" || true
+
+      - uses: actions/checkout@v4
+      #- name: Run initial script
+      #  run: |
+      #    chmod +x ./deployscripts/transfer.sh
+      #    ./deployscripts/transfer.sh
+      #  shell: bash
+      
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Create frontend env
+        run: |
+          cd ./frontend/react
+          cat > .env <<EOF
+          VITE_API_URL="${{ vars.VITE_API_URL }}"
+          EOF
+          echo "Wrote $(pwd)/.env"
+          
+      - name: Build fronted
+        run: |
+          cd ./frontend/react
+          npm install
+          npm run build
+
+      - name: Verify required GitHub Variables/Secrets exist
+        run: |
+          set -euo pipefail
+          # SWITCH these to "secrets." or "vars." to match where you stored them
+          test -n "${{ secrets.POSTGRES_DB }}"        || { echo "::error::Missing secrets.POSTGRES_DB"; exit 1; }
+          test -n "${{ secrets.POSTGRES_USER }}"      || { echo "::error::Missing secrets.POSTGRES_USER"; exit 1; }
+          test -n "${{ secrets.POSTGRES_PASSWORD }}"  || { echo "::error::Missing secrets.POSTGRES_PASSWORD"; exit 1; }
+          test -n "${{ secrets.POSTGRES_HOST }}"      || { echo "::error::Missing secrets.POSTGRES_HOST"; exit 1; }
+          test -n "${{ secrets.POSTGRES_PORT }}"      || { echo "::error::Missing secrets.POSTGRES_PORT"; exit 1; }
+          test -n "${{ secrets.JWT_SECRET_KEY }}"     || { echo "::error::Missing secrets.JWT_SECRET_KEY"; exit 1; }
+      
+          # If these are in Variables, keep vars.*; if you put them in Secrets, change to secrets.*
+          test -n "${{ vars.DOMAIN }}"                || { echo "::error::Missing vars.DOMAIN"; exit 1; }
+      
+          # Optional: only needed if your compose uses these DPORT_* values
+          test -n "${{ vars.DPORT_NGINX_HOST_HTTP }}"       || echo "::warning::vars.DPORT_NGINX_HOST_HTTP is empty"
+          test -n "${{ vars.DPORT_NGINX_HOST_HTTPS }}"      || echo "::warning::vars.DPORT_NGINX_HOST_HTTPS is empty"
+          test -n "${{ vars.DPORT_NGINX_CONTAINER_HTTP }}"  || echo "::warning::vars.DPORT_NGINX_CONTAINER_HTTP is empty"
+          test -n "${{ vars.DPORT_NGINX_CONTAINER_HTTPS }}" || echo "::warning::vars.DPORT_NGINX_CONTAINER_HTTPS is empty"
+          test -n "${{ vars.DPORT_BACKEND_HOST }}"          || echo "::warning::vars.DPORT_BACKEND_HOST is empty"
+          test -n "${{ vars.DPORT_BACKEND_CONTAINER }}"     || echo "::warning::vars.DPORT_BACKEND_CONTAINER is empty"
+          test -n "${{ vars.DPORT_DB_HOST }}"               || echo "::warning::vars.DPORT_DB_HOST is empty"
+          test -n "${{ vars.DPORT_DB_CONTAINER }}"          || echo "::warning::vars.DPORT_DB_CONTAINER is empty"
+          test -n "${{ vars.BACKEND_CORS_ORIGINS }}"        || echo "::warning::vars.BACKEND_CORS_ORIGINS is empty"
+      
+      - name: Show what will be written to .env (masking secrets)
+        run: |
+          echo "DOMAIN=${{ vars.LE_DOMAIN }}"
+          echo "POSTGRES_DB=<set? $([[ -n '${{ secrets.POSTGRES_DB }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_USER=<set? $([[ -n '${{ secrets.POSTGRES_USER }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_PASSWORD=<set? $([[ -n '${{ secrets.POSTGRES_PASSWORD }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_HOST=<set? $([[ -n '${{ secrets.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_PORT=<set? $([[ -n '${{ secrets.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
+          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ secrets.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
+
+      # Create a .env for Compose and your FastAPI Settings(BaseSettings)
+      # Compose relies on this because your services use `env_file: - .env`
+      - name: Write .env from secrets
+        run: |
+          cat > .env <<EOF
+          DPORT_NGINX_HOST_HTTP=${DPORT_NGINX_HOST_HTTP}
+          DPORT_NGINX_HOST_HTTPS=${DPORT_NGINX_HOST_HTTPS}
+          DPORT_NGINX_CONTAINER_HTTP=${DPORT_NGINX_CONTAINER_HTTP}
+          DPORT_NGINX_CONTAINER_HTTPS=${DPORT_NGINX_CONTAINER_HTTPS}
+          DPORT_BACKEND_HOST=${DPORT_BACKEND_HOST}
+          DPORT_BACKEND_CONTAINER=${DPORT_BACKEND_CONTAINER}
+          DPORT_DB_HOST=${DPORT_DB_HOST}
+          DPORT_DB_CONTAINER=${DPORT_DB_CONTAINER}
+          
+          POSTGRES_DB=${POSTGRES_DB}
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          POSTGRES_HOST=${POSTGRES_HOST}
+          POSTGRES_PORT=${POSTGRES_PORT}
+          
+          JWT_SECRET_KEY=${JWT_SECRET_KEY}
+          JWT_ALGORITHM=${JWT_ALGORITHM}
+
+          ENROLLMENT_API_URL=${ENROLLMENT_API_URL}
+          COURSE_API_URL=${COURSE_API_URL}
+          API_TOKEN=${API_TOKEN}
+
+          LDAP_SERVER_URL=${LDAP_SERVER_URL}
+          LDAP_USER_DN=${LDAP_USER_DN}
+          LDAP_PASSWORD=${LDAP_PASSWORD}
+
+          OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+          OAUTH_AUTHORIZE_URL=${OAUTH_AUTHORIZE_URL}
+          OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+          OAUTH_USERINFO_URL=${OAUTH_USERINFO_URL}
+          OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI}
+          OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
+          OAUTH_EXTRA_SCOPE=${OAUTH_EXTRA_SCOPE}
+          FRONTEND_URL=${FRONTEND_URL}
+          SESSION_SECRET=${SESSION_SECRET}
+
+          BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}    
+          DOMAIN=${DOMAIN}          
+          EOF
+          echo "Wrote $(pwd)/.env"         
+
+      # Bring the stack up (nginx on 80/443, certbot volumes mounted)
+      - name: Start stack
+        run: |
+          sudo docker compose -f docker-compose-prod.yml up -d --build --force-recreate --remove-orphans 
+
+      - name: Post-deploy fix ownership
+        run: |
+          sudo chown -R $USER:$USER "$GITHUB_WORKSPACE" || true
