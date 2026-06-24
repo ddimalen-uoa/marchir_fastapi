@@ -21,7 +21,7 @@ export default function LoginPage() {
   }, [data, navigate]);
 
   function handleLogin() {
-    window.location.href = import.meta.env.VITE_API_URL;
+    window.location.href = import.meta.env.VITE_API_URL+"/api/v1/auth/login";
   }
 
   return (
