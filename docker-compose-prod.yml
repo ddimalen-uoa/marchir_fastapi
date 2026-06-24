@@ -7,14 +7,14 @@ services:
     build:
       context: nginx
       dockerfile: Dockerfile.prod
-    container_name: rise-nginx-prod
+    container_name: marchir-nginx-prod
     volumes:
       - ./nginx/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
       - ./frontend/react/dist:/var/www/react   
     ports:
       - "127.0.0.1:8080:80"
     networks:
-      - riseSktzootech  
+      - marchirSktzootech  
   backend:
     image: fast-api-prod
     env_file:
@@ -26,13 +26,14 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.prod
-    container_name: rise-backend-prod
+    container_name: marchir-backend-prod
     restart: always
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
       - ./backend:/app
       - /var/www/marchir_uploads:/uploads
+      - /var/www/marchir_uploads/submissions:/uploads
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -45,15 +46,15 @@ services:
       - DOMAIN=${DOMAIN}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
     networks:
-      - riseSktzootech
+      - marchirSktzootech
   db:
     image: postgres:17
     restart: always
     env_file:
       - .env
-    container_name: rise-postgresdb-prod
+    container_name: marchir-postgresdb-prod
     volumes:
-      - rise_postgres_db:/var/lib/postgresql/data/
+      - marchir_postgres_db:/var/lib/postgresql/data/
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -67,10 +68,9 @@ services:
       start_period: 30s
       timeout: 10s
     networks:
-      - riseSktzootech
+      - marchirSktzootech
 
 volumes:
-  rise_postgres_db:
-
+  marchir_postgres_db:
 networks:
-  riseSktzootech:
+  marchirSktzootech:
