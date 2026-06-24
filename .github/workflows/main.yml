@@ -11,12 +11,11 @@ jobs:
   deploy:
     runs-on: self-hosted
     environment: Production
-    
-    strategy:
-       matrix:
-         node-version: [20.x]
 
     env:
+      # Force GitHub JavaScript actions to use Node 24 internally
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
       DPORT_NGINX_HOST_HTTP: ${{ vars.DPORT_NGINX_HOST_HTTP }}
       DPORT_NGINX_HOST_HTTPS: ${{ vars.DPORT_NGINX_HOST_HTTPS }}
       DPORT_NGINX_CONTAINER_HTTP: ${{ vars.DPORT_NGINX_CONTAINER_HTTP }}
@@ -61,17 +60,14 @@ jobs:
         run: |
           sudo chown -R $USER:$USER "$GITHUB_WORKSPACE" || true
 
-      - uses: actions/checkout@v4
-      #- name: Run initial script
-      #  run: |
-      #    chmod +x ./deployscripts/transfer.sh
-      #    ./deployscripts/transfer.sh
-      #  shell: bash
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-      - name: Use Node.js ${{ matrix.node-version }}
+      # This is the Node version used by your frontend build
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
       
       - name: Create frontend env
         run: |
@@ -99,7 +95,7 @@ jobs:
           test -n "${{ secrets.JWT_SECRET_KEY }}"     || { echo "::error::Missing secrets.JWT_SECRET_KEY"; exit 1; }
       
           # If these are in Variables, keep vars.*; if you put them in Secrets, change to secrets.*
-          test -n "${{ vars.DOMAIN }}"                || { echo "::error::Missing vars.DOMAIN"; exit 1; }
+          test -n "${{ vars.LE_DOMAIN }}"                || { echo "::error::Missing vars.LE_DOMAIN"; exit 1; }
       
           # Optional: only needed if your compose uses these DPORT_* values
           test -n "${{ vars.DPORT_NGINX_HOST_HTTP }}"       || echo "::warning::vars.DPORT_NGINX_HOST_HTTP is empty"
