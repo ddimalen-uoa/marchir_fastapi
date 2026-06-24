@@ -15,7 +15,7 @@ export type MeResponse = {
 };
 
 export async function getMe(): Promise<MeResponse> {
-  const response = await fetch("https://localhost/api/v1/auth/me", {
+  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/me", {
     method: "GET",
     credentials: "include",
     headers: {
@@ -35,7 +35,7 @@ export async function getMe(): Promise<MeResponse> {
 }
 
 export async function logoutRequest(): Promise<void> {
-  const response = await fetch("https://localhost/api/v1/auth/logout", {
+  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/logout", {
     method: "POST",
     credentials: "include",
     headers: {
