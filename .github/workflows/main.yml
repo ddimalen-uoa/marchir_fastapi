@@ -54,7 +54,7 @@ jobs:
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
-      DOMAIN: ${{ vars.DOMAIN }}
+      DOMAIN: ${{ vars.LE_DOMAIN }}
     
     steps:
       - name: Fix workspace ownership
