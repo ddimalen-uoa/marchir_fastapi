@@ -78,7 +78,7 @@ export async function downloadCsv (courseId: number) {
 }
 
 export async function runAutoEnrollment () {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/v1/enrollment-route/auto-enroll", {
+  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/enrollment-route/auto-enroll", {
     method: "GET",
     credentials: "include",
   });

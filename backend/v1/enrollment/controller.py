@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status,  UploadFile, File, HTTPException
 from fastapi.responses import PlainTextResponse
 from config.core import DbSession
+import logger
 
 from . import service
 from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrollment, AdminMember
@@ -15,6 +16,7 @@ async def get_auto_enroll_route(
     member: AdminMember,
     db: DbSession = None
 ):
+    logger.logging.error(f"DavisD")
     return await service.get_auto_enroll_module(member, db)
 
 
