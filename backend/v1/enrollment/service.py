@@ -1,4 +1,5 @@
 import asyncio
+import logger
 import os
 from datetime import datetime
 from typing import List, Any
@@ -258,6 +259,10 @@ async def get_auto_enroll_module(
         member: AdminMember,
         db: DbSession = None
 ):
+    logger.logging.error(
+            f"Hello logger"
+    )
+    
     courses = db.query(Course).filter(Course.is_active).all()
 
     timeout = httpx.Timeout(20.0, connect=10.0)
