@@ -259,9 +259,6 @@ async def get_auto_enroll_module(
         member: AdminMember,
         db: DbSession = None
 ):
-    logger.logging.error(
-            f"Hello logger"
-    )
     
     courses = db.query(Course).filter(Course.is_active).all()
 

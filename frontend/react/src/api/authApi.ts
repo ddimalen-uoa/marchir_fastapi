@@ -7,6 +7,7 @@ export type Member = {
   email: string | null;
   upi: string | null;
   role: Role | null;
+  email_verified: boolean;
 };
 
 export type MeResponse = {
@@ -46,4 +47,41 @@ export async function logoutRequest(): Promise<void> {
   if (!response.ok) {
     throw new Error(`LOGOUT_FAILED_${response.status}`);
   }
+}
+
+export type AuthConfig = {
+  auth_provider: "sso" | "google";
+};
+
+export async function getAuthConfig(): Promise<AuthConfig> {
+  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/config", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`AUTH_CONFIG_FAILED_${response.status}`);
+  }
+
+  return response.json() as Promise<AuthConfig>;
+}
+
+export async function requestEmailLogin(email: string): Promise<{ ok: boolean; message: string }> {
+  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/email/login", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`EMAIL_LOGIN_FAILED_${response.status}`);
+  }
+
+  return response.json() as Promise<{ ok: boolean; message: string }>;
 }

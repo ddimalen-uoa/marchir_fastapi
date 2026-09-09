@@ -46,12 +46,29 @@ class Settings(BaseSettings):
     OAUTH_CLIENT_ID: str
     OAUTH_AUTHORIZE_URL: str
     OAUTH_TOKEN_URL: str
-    OAUTH_USERINFO_URL: str
+    OAUTH_USERINFO_URL: str = 'https://openidconnect.googleapis.com/v1/userinfo'
     OAUTH_REDIRECT_URI: str
-    OAUTH_EXTRA_SCOPE: str
+    OAUTH_EXTRA_SCOPE: str = ''
     OAUTH_CLIENT_SECRET: str = ''
+    OAUTH_SCOPE: str = 'openid email profile'
+    AUTH_PROVIDER: str = 'sso'
+    SSO_OAUTH_CLIENT_ID: str | None = None
+    SSO_OAUTH_CLIENT_SECRET: str | None = None
+    SSO_OAUTH_AUTHORIZE_URL: str | None = None
+    SSO_OAUTH_TOKEN_URL: str | None = None
+    SSO_OAUTH_USERINFO_URL: str | None = None
+    SSO_OAUTH_REDIRECT_URI: str | None = None
+    SSO_OAUTH_SCOPE: str | None = None
     FRONTEND_URL: str
     SESSION_SECRET: str
+    APP_ENV: str = 'development'
+
+    APP_SMTP_HOST: str | None = None
+    APP_SMTP_PORT: int = 2525
+    APP_SMTP_ENCRYPTION: str = 'tls'
+    APP_SMTP_USERNAME: str | None = None
+    APP_SMTP_PASSWORD: str | None = None
+    APP_MAIL_FROM: str | None = None
 
     DOMAIN: str = 'localhost'
 

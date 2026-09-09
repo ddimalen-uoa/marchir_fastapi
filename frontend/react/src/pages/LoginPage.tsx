@@ -1,17 +1,26 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { useAuth } from "../features/auth/useAuth";
 import { dashboardPathForRole } from "../features/auth/roleUtils";
 import { useAuthStore } from "../features/auth/authStore";
+import { getAuthConfig, requestEmailLogin, type AuthConfig } from "../api/authApi";
 
 import background_image from "../assets/loginbackground2.png";
 import logo from "../assets/uoa_logo.png"
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data, isLoading } = useAuth();
+  const [authProvider, setAuthProvider] = useState<AuthConfig["auth_provider"]>("sso");
+  const [email, setEmail] = useState("");
+  const [emailMessage, setEmailMessage] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
 
   const redirectMessage = useAuthStore((state) => state.redirectMessage);
+  const setRedirectMessage = useAuthStore((state) => state.setRedirectMessage);
   const clearRedirectMessage = useAuthStore((state) => state.clearRedirectMessage);
 
   useEffect(() => {
@@ -20,9 +29,47 @@ export default function LoginPage() {
     }
   }, [data, navigate]);
 
-  function handleLogin() {
-    window.location.href = import.meta.env.VITE_API_URL+"/api/v1/auth/login";
+  useEffect(() => {
+    getAuthConfig()
+      .then((config) => setAuthProvider(config.auth_provider))
+      .catch(() => setAuthProvider("sso"));
+  }, []);
+
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message) {
+      setRedirectMessage(message);
+      setSearchParams((params) => {
+        params.delete("message");
+        return params;
+      }, { replace: true });
+    }
+  }, [searchParams, setRedirectMessage, setSearchParams]);
+
+  function handleLogin(provider = authProvider) {
+    window.location.href = import.meta.env.VITE_API_URL+"/api/v1/auth/login?provider="+provider;
   }
+
+  async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setEmailMessage(null);
+    setEmailError(null);
+    setIsEmailSubmitting(true);
+
+    try {
+      const response = await requestEmailLogin(email);
+      setEmailMessage(response.message);
+      setEmail("");
+    } catch {
+      setEmailError("We could not send the email right now. Please try again shortly.");
+    } finally {
+      setIsEmailSubmitting(false);
+    }
+  }
+
+  const providerLabel = authProvider === "google"
+    ? "Continue with Google"
+    : "University of Auckland Single Sign-on";
 
   return (
     <>
@@ -70,9 +117,53 @@ export default function LoginPage() {
 
               </div>
 
-                 <button className="block w-full px-6 py-4 font-semibold text-white transition bg-blue-600 shadow-lg cursor-pointer hover:bg-blue-700 rounded-xl" onClick={handleLogin} disabled={isLoading}>
-                    University of Auckland Single Sign-on
-                 </button>              
+                 <button className="block w-full px-6 py-4 font-semibold text-white transition bg-blue-600 shadow-lg cursor-pointer hover:bg-blue-700 rounded-xl" onClick={() => handleLogin()} disabled={isLoading}>
+                    {providerLabel}
+                 </button>
+
+                 {authProvider === "google" && (
+                   <>
+                     <div className="flex items-center gap-3 my-6 text-xs uppercase tracking-wider text-white/60">
+                       <div className="h-px flex-1 bg-white/20"></div>
+                       <span>or use email</span>
+                       <div className="h-px flex-1 bg-white/20"></div>
+                     </div>
+
+                     <form onSubmit={handleEmailLogin} className="space-y-3 text-left">
+                       <label className="block text-sm font-medium text-white/80" htmlFor="email-login">
+                         Email address
+                       </label>
+                       <input
+                         id="email-login"
+                         className="w-full rounded-lg border border-white/30 bg-white/90 px-4 py-3 text-slate-950 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-300"
+                         type="email"
+                         value={email}
+                         onChange={(event) => setEmail(event.target.value)}
+                         placeholder="name@example.com"
+                         required
+                       />
+                       <button
+                         className="block w-full rounded-xl bg-white px-6 py-3 font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+                         type="submit"
+                         disabled={isEmailSubmitting}
+                       >
+                         {isEmailSubmitting ? "Sending email..." : "Send email link"}
+                       </button>
+                     </form>
+
+                     {emailMessage && (
+                       <div className="mt-4 rounded-lg border border-emerald-500/40 bg-emerald-50 px-4 py-3 text-left text-sm text-emerald-950">
+                         {emailMessage}
+                       </div>
+                     )}
+
+                     {emailError && (
+                       <div className="mt-4 rounded-lg border border-red-500/40 bg-red-50 px-4 py-3 text-left text-sm text-red-950">
+                         {emailError}
+                       </div>
+                     )}
+                   </>
+                 )}
 
                  {redirectMessage && (
                    <div style={{ marginTop: 12 }}>

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy import text
 
 from config.core import engine, Base
 from api import register_routes
@@ -29,5 +30,21 @@ def healthz():
     return {"ok": True}
 
 Base.metadata.create_all(bind=engine)
+
+
+def ensure_auth_schema():
+    statements = [
+        "ALTER TABLE member ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50)",
+        "ALTER TABLE member ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE member ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP",
+        "ALTER TABLE oauth_transaction ADD COLUMN IF NOT EXISTS provider VARCHAR(50) NOT NULL DEFAULT 'sso'",
+    ]
+
+    with engine.begin() as conn:
+        for statement in statements:
+            conn.execute(text(statement))
+
+
+ensure_auth_schema()
 
 register_routes(app)
