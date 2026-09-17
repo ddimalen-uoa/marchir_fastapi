@@ -20,3 +20,33 @@ JWT_ALGORITHM=HS256
 BACKEND_CORS_ORIGINS=http://localhost
 DOMAIN=melonamoy
 PIPELINE=local
+
+# Authentication
+AUTH_PROVIDER=google
+OAUTH_CLIENT_ID=xxx
+OAUTH_CLIENT_SECRET=xxx
+OAUTH_AUTHORIZE_URL=https://accounts.google.com/o/oauth2/v2/auth
+OAUTH_TOKEN_URL=https://oauth2.googleapis.com/token
+OAUTH_USERINFO_URL=https://openidconnect.googleapis.com/v1/userinfo
+OAUTH_REDIRECT_URI=https://localhost/api/v1/auth/callback
+OAUTH_SCOPE=openid email profile
+OAUTH_EXTRA_SCOPE=
+FRONTEND_URL=https://localhost
+SESSION_SECRET={use "openssl rand -hex 32" to generate}
+
+# Optional SSO-specific values. If omitted, the OAUTH_* values are used.
+SSO_OAUTH_CLIENT_ID=
+SSO_OAUTH_CLIENT_SECRET=
+SSO_OAUTH_AUTHORIZE_URL=
+SSO_OAUTH_TOKEN_URL=
+SSO_OAUTH_USERINFO_URL=
+SSO_OAUTH_REDIRECT_URI=
+SSO_OAUTH_SCOPE=
+
+# Postmark SMTP
+APP_SMTP_HOST=smtp.postmarkapp.com
+APP_SMTP_PORT=2525
+APP_SMTP_ENCRYPTION=tls
+APP_SMTP_USERNAME=xxxx
+APP_SMTP_PASSWORD=xxxx
+APP_MAIL_FROM=davis@techrus.co.nz

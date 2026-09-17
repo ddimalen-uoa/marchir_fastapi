@@ -13,6 +13,7 @@ class OAuthTransaction(Base):
     state: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     code_verifier: Mapped[str] = mapped_column(Text, nullable=False)
     redirect_uri: Mapped[str] = mapped_column(Text, nullable=False)
+    provider: Mapped[str] = mapped_column(String(50), default="sso", nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False

@@ -16,7 +16,6 @@ async def get_auto_enroll_route(
     member: AdminMember,
     db: DbSession = None
 ):
-    logger.logging.error(f"DavisD")
     return await service.get_auto_enroll_module(member, db)
 
 

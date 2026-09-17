@@ -26,6 +26,9 @@ class Member(Base):
         nullable=True,
     )
     role: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    auth_provider: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email_verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     created: Mapped[Optional[datetime]] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=True

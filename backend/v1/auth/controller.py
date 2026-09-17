@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Cookie
+from pydantic import BaseModel, EmailStr
 from config.core import DbSession
 
 from . import service
@@ -9,11 +10,22 @@ router = APIRouter(
     tags=['Authentication Route']
 )
 
+
+class EmailLoginRequest(BaseModel):
+    email: EmailStr
+
+
+@router.get("/config")
+async def get_auth_config_route():
+    return await service.get_auth_config_module()
+
+
 @router.get("/login")
 async def get_login_route(
-    db:DbSession    # type: ignore
+    db:DbSession,    # type: ignore
+    provider: str | None = None,
 ):
-    return await service.get_login_module(db)
+    return await service.get_login_module(db, provider)
 
 @router.get("/callback")
 async def get_callback_route(
@@ -22,6 +34,23 @@ async def get_callback_route(
     state: str | None = None    
 ):
     return await service.get_callback_module(db, code, state)
+
+
+@router.post("/email/login")
+async def post_email_login_route(
+    request: EmailLoginRequest,
+    db: DbSession = None, # type: ignore
+):
+    return await service.post_email_login_module(db, str(request.email))
+
+
+@router.get("/email/verify")
+async def get_email_verify_route(
+    db: DbSession = None, # type: ignore
+    token: str | None = None,
+):
+    return await service.get_email_verify_module(db, token)
+
 
 @router.get("/me")
 async def get_me_route(
