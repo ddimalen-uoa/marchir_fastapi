@@ -16,8 +16,6 @@ jobs:
       # Force GitHub JavaScript actions to use Node 24 internally
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-      AUTH_PROVIDER: ${{ vars.AUTH_PROVIDER }}
-
       DPORT_NGINX_HOST_HTTP: ${{ vars.DPORT_NGINX_HOST_HTTP }}
       DPORT_NGINX_HOST_HTTPS: ${{ vars.DPORT_NGINX_HOST_HTTPS }}
       DPORT_NGINX_CONTAINER_HTTP: ${{ vars.DPORT_NGINX_CONTAINER_HTTP }}
