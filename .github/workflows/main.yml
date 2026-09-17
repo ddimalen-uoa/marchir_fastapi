@@ -96,7 +96,7 @@ jobs:
           test -n "${{ secrets.POSTGRES_PASSWORD }}"  || { echo "::error::Missing secrets.POSTGRES_PASSWORD"; exit 1; }
           test -n "${{ vars.POSTGRES_HOST }}"      || { echo "::error::Missing vars.POSTGRES_HOST"; exit 1; }
           test -n "${{ vars.POSTGRES_PORT }}"      || { echo "::error::Missing vars.POSTGRES_PORT"; exit 1; }
-          test -n "${{ vars.JWT_SECRET_KEY }}"     || { echo "::error::Missing vars.JWT_SECRET_KEY"; exit 1; }
+          test -n "${{ secrets.JWT_SECRET_KEY }}"     || { echo "::error::Missing secrets.JWT_SECRET_KEY"; exit 1; }
       
           # If these are in Variables, keep vars.*; if you put them in Secrets, change to secrets.*
           test -n "${{ vars.LE_DOMAIN }}"                || { echo "::error::Missing vars.LE_DOMAIN"; exit 1; }
