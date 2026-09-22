@@ -256,11 +256,11 @@ jobs:
         run: |
           set -euo pipefail
           # SWITCH these to "secrets." or "vars." to match where you stored them
-          test -n "${{ secrets.POSTGRES_DB }}"        || { echo "::error::Missing secrets.POSTGRES_DB"; exit 1; }
-          test -n "${{ secrets.POSTGRES_USER }}"      || { echo "::error::Missing secrets.POSTGRES_USER"; exit 1; }
+          test -n "${{ vars.POSTGRES_DB }}"        || { echo "::error::Missing vars.POSTGRES_DB"; exit 1; }
+          test -n "${{ vars.POSTGRES_USER }}"      || { echo "::error::Missing vars.POSTGRES_USER"; exit 1; }
           test -n "${{ secrets.POSTGRES_PASSWORD }}"  || { echo "::error::Missing secrets.POSTGRES_PASSWORD"; exit 1; }
-          test -n "${{ secrets.POSTGRES_HOST }}"      || { echo "::error::Missing secrets.POSTGRES_HOST"; exit 1; }
-          test -n "${{ secrets.POSTGRES_PORT }}"      || { echo "::error::Missing secrets.POSTGRES_PORT"; exit 1; }
+          test -n "${{ vars.POSTGRES_HOST }}"      || { echo "::error::Missing vars.POSTGRES_HOST"; exit 1; }
+          test -n "${{ vars.POSTGRES_PORT }}"      || { echo "::error::Missing vars.POSTGRES_PORT"; exit 1; }
           test -n "${{ secrets.JWT_SECRET_KEY }}"     || { echo "::error::Missing secrets.JWT_SECRET_KEY"; exit 1; }
       
           # If these are in Variables, keep vars.*; if you put them in Secrets, change to secrets.*
@@ -280,18 +280,20 @@ jobs:
       - name: Show what will be written to .env (masking secrets)
         run: |
           echo "DOMAIN=${{ vars.LE_DOMAIN }}"
-          echo "POSTGRES_DB=<set? $([[ -n '${{ secrets.POSTGRES_DB }}' ]] && echo yes || echo no)>"
-          echo "POSTGRES_USER=<set? $([[ -n '${{ secrets.POSTGRES_USER }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_DB=<set? $([[ -n '${{ vars.POSTGRES_DB }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_USER=<set? $([[ -n '${{ vars.POSTGRES_USER }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_PASSWORD=<set? $([[ -n '${{ secrets.POSTGRES_PASSWORD }}' ]] && echo yes || echo no)>"
-          echo "POSTGRES_HOST=<set? $([[ -n '${{ secrets.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
-          echo "POSTGRES_PORT=<set? $([[ -n '${{ secrets.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
-          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ secrets.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_HOST=<set? $([[ -n '${{ vars.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
+          echo "POSTGRES_PORT=<set? $([[ -n '${{ vars.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
+          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ vars.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
 
       # Create a .env for Compose and your FastAPI Settings(BaseSettings)
       # Compose relies on this because your services use `env_file: - .env`
       - name: Write .env from secrets
         run: |
           cat > .env <<EOF
+          AUTH_PROVIDER=${AUTH_PROVIDER}
+
           DPORT_NGINX_HOST_HTTP=${DPORT_NGINX_HOST_HTTP}
           DPORT_NGINX_HOST_HTTPS=${DPORT_NGINX_HOST_HTTPS}
           DPORT_NGINX_CONTAINER_HTTP=${DPORT_NGINX_CONTAINER_HTTP}
