@@ -211,6 +211,8 @@ jobs:
       LDAP_USER_DN: ${{ vars.LDAP_USER_DN }}
       LDAP_PASSWORD: ${{ secrets.LDAP_PASSWORD }}
 
+      AUTH_PROVIDER: ${{ vars.AUTH_PROVIDER }}
+
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
       OAUTH_AUTHORIZE_URL: ${{ vars.OAUTH_AUTHORIZE_URL }}
       OAUTH_TOKEN_URL: ${{ vars.OAUTH_TOKEN_URL }}
