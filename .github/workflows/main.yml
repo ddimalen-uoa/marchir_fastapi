@@ -53,6 +53,8 @@ jobs:
       OAUTH_EXTRA_SCOPE: ${{ vars.OAUTH_EXTRA_SCOPE }}
       FRONTEND_URL: ${{ vars.FRONTEND_URL }}
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
       
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
       DOMAIN: ${{ vars.LE_DOMAIN }}
@@ -222,6 +224,8 @@ jobs:
       OAUTH_EXTRA_SCOPE: ${{ vars.OAUTH_EXTRA_SCOPE }}
       FRONTEND_URL: ${{ vars.FRONTEND_URL }}
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
       
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
       DOMAIN: ${{ vars.LE_DOMAIN }}
@@ -331,6 +335,8 @@ jobs:
           OAUTH_EXTRA_SCOPE=${OAUTH_EXTRA_SCOPE}
           FRONTEND_URL=${FRONTEND_URL}
           SESSION_SECRET=${SESSION_SECRET}
+
+          VITE_API_URL=${VITE_API_URL}
 
           BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}    
           DOMAIN=${DOMAIN}          
