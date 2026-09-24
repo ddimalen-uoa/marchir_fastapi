@@ -22,6 +22,7 @@ DOMAIN=melonamoy
 PIPELINE=local
 
 # Authentication
+# OAUTH_* configures Google. Keep the existing SSO/Cognito values in SSO_OAUTH_*.
 AUTH_PROVIDER=google
 OAUTH_CLIENT_ID=xxx
 OAUTH_CLIENT_SECRET=xxx
@@ -33,8 +34,9 @@ OAUTH_SCOPE=openid email profile
 OAUTH_EXTRA_SCOPE=
 FRONTEND_URL=https://localhost
 SESSION_SECRET={use "openssl rand -hex 32" to generate}
+APP_ENV=development
 
-# Optional SSO-specific values. If omitted, the OAUTH_* values are used.
+# SSO/Cognito values. Set these if OAUTH_* contains the Google configuration.
 SSO_OAUTH_CLIENT_ID=
 SSO_OAUTH_CLIENT_SECRET=
 SSO_OAUTH_AUTHORIZE_URL=
