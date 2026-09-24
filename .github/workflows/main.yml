@@ -86,7 +86,7 @@ jobs:
           EOF
           echo "Wrote $(pwd)/.env"
           
-      - name: Build fronted
+      - name: Build frontend
         run: |
           cd ./frontend/react
           npm install
@@ -125,7 +125,7 @@ jobs:
           echo "POSTGRES_PASSWORD=<set? $([[ -n '${{ secrets.POSTGRES_PASSWORD }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_HOST=<set? $([[ -n '${{ vars.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_PORT=<set? $([[ -n '${{ vars.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
-          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ vars.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
+          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ secrets.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
 
       # Create a .env for Compose and your FastAPI Settings(BaseSettings)
       # Compose relies on this because your services use `env_file: - .env`
@@ -173,7 +173,7 @@ jobs:
           APP_SMTP_HOST=${APP_SMTP_HOST}
           APP_SMTP_PORT=${APP_SMTP_PORT}
           APP_SMTP_ENCRYPTION=${APP_SMTP_ENCRYPTION}
-          APP_MAIL_FROM=${vars.APP_MAIL_FROM}
+          APP_MAIL_FROM=${APP_MAIL_FROM}
 
           VITE_API_URL=${VITE_API_URL}         
 
@@ -269,7 +269,7 @@ jobs:
           EOF
           echo "Wrote $(pwd)/.env"
           
-      - name: Build fronted
+      - name: Build frontend
         run: |
           cd ./frontend/react
           npm install
@@ -308,7 +308,7 @@ jobs:
           echo "POSTGRES_PASSWORD=<set? $([[ -n '${{ secrets.POSTGRES_PASSWORD }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_HOST=<set? $([[ -n '${{ vars.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_PORT=<set? $([[ -n '${{ vars.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
-          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ vars.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
+          echo "JWT_SECRET_KEY=<set? $([[ -n '${{ secrets.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
 
       # Create a .env for Compose and your FastAPI Settings(BaseSettings)
       # Compose relies on this because your services use `env_file: - .env`
@@ -356,7 +356,7 @@ jobs:
           APP_SMTP_HOST=${APP_SMTP_HOST}
           APP_SMTP_PORT=${APP_SMTP_PORT}
           APP_SMTP_ENCRYPTION=${APP_SMTP_ENCRYPTION}
-          APP_MAIL_FROM=${vars.APP_MAIL_FROM}
+          APP_MAIL_FROM=${APP_MAIL_FROM}
 
           VITE_API_URL=${VITE_API_URL}
 
