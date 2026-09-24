@@ -175,7 +175,7 @@ jobs:
           APP_SMTP_ENCRYPTION=${APP_SMTP_ENCRYPTION}
           APP_MAIL_FROM=${APP_MAIL_FROM}
 
-          VITE_API_URL=${VITE_API_URL}         
+          VITE_API_URL=${VITE_API_URL}
 
           BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}    
           DOMAIN=${DOMAIN}          
