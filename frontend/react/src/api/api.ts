@@ -1,7 +1,8 @@
 import { type CourseEnrolled } from "@/types/course";
+import { apiUrl } from "./apiUrl";
 
 export async function fetchMe() {
-  const res = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/me", {
+  const res = await fetch(apiUrl("/api/v1/auth/me"), {
     credentials: "include",
   });
 
@@ -13,14 +14,14 @@ export async function fetchMe() {
 }
 
 export async function logout() {
-  await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/logout", {
+  await fetch(apiUrl("/api/v1/auth/logout"), {
     method: "POST",
     credentials: "include",
   });
 }
 
 export async function getLastSubmission() {
-  const res = await fetch(import.meta.env.VITE_API_URL+"/api/v1/marker-result-route/get-last-submission", {
+  const res = await fetch(apiUrl("/api/v1/marker-result-route/get-last-submission"), {
     method: "GET",
     credentials: "include",
   });
@@ -30,7 +31,7 @@ export async function getLastSubmission() {
 
 
 export async function uploadFile(formData: FormData) {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/upload-route/upload-zip", {
+  const response = await fetch(apiUrl("/api/v1/upload-route/upload-zip"), {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -40,7 +41,7 @@ export async function uploadFile(formData: FormData) {
 }
 
 export async function markAssignment(formData: FormData) {
-    const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/upload-route/submit-assignment", {
+    const response = await fetch(apiUrl("/api/v1/upload-route/submit-assignment"), {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -50,7 +51,7 @@ export async function markAssignment(formData: FormData) {
 }
 
 export async function getActiveCoursesStudentsSubmissions() {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/marker-result-route/get-last-submission/active-with-students-and-submissions", {
+  const response = await fetch(apiUrl("/api/v1/marker-result-route/get-last-submission/active-with-students-and-submissions"), {
     method: "GET",
     credentials: "include",
   });
@@ -59,7 +60,7 @@ export async function getActiveCoursesStudentsSubmissions() {
 }
 
 export async function downloadCourseZip (formData: FormData) {
-    const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/marker-result-route/download-zip-course", {
+    const response = await fetch(apiUrl("/api/v1/marker-result-route/download-zip-course"), {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -69,7 +70,7 @@ export async function downloadCourseZip (formData: FormData) {
 }
 
 export async function downloadCsv (courseId: number) {
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/marker-result-route/download-marker-results-csv/${courseId}`, {
+  const response = await fetch(apiUrl(`/api/v1/marker-result-route/download-marker-results-csv/${courseId}`), {
     method: "GET",
     credentials: "include",
   });
@@ -78,7 +79,7 @@ export async function downloadCsv (courseId: number) {
 }
 
 export async function runAutoEnrollment () {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/enrollment-route/auto-enroll", {
+  const response = await fetch(apiUrl("/api/v1/enrollment-route/auto-enroll"), {
     method: "GET",
     credentials: "include",
   });
@@ -87,7 +88,7 @@ export async function runAutoEnrollment () {
 }
 
 export async function getCoursesAndEnrollments(): Promise<CourseEnrolled[]> {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/enrollment-route/get-courses-and-enrollment", {
+  const response = await fetch(apiUrl("/api/v1/enrollment-route/get-courses-and-enrollment"), {
     method: "GET",
     credentials: "include",
   });
@@ -101,7 +102,7 @@ export async function getCoursesAndEnrollments(): Promise<CourseEnrolled[]> {
 }
 
 export async function addNewCourse (formData: FormData) {
-    const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/course-route/add-course", {
+    const response = await fetch(apiUrl("/api/v1/course-route/add-course"), {
       method: "POST",
       credentials: "include",
       body: formData,
@@ -113,7 +114,7 @@ export async function addNewCourse (formData: FormData) {
 }
 
 export async function updateCourse (formData: FormData, courseId: string) {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/course-route/edit-course/${courseId}`, {
+    const response = await fetch(apiUrl(`/api/v1/course-route/edit-course/${courseId}`), {
       method: "PUT",
       credentials: "include",
       body: formData,

@@ -5,6 +5,7 @@ import { useAuth } from "../features/auth/useAuth";
 import { dashboardPathForRole } from "../features/auth/roleUtils";
 import { useAuthStore } from "../features/auth/authStore";
 import { getAuthConfig, requestEmailLogin, type AuthConfig } from "../api/authApi";
+import { apiUrl } from "../api/apiUrl";
 
 import background_image from "../assets/loginbackground2.png";
 import logo from "../assets/uoa_logo.png"
@@ -13,7 +14,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data, isLoading } = useAuth();
-  const [authProvider, setAuthProvider] = useState<AuthConfig["auth_provider"]>("sso");
+  const [authProvider, setAuthProvider] = useState<AuthConfig["auth_provider"] | null>(null);
+  const [authConfigError, setAuthConfigError] = useState(false);
   const [email, setEmail] = useState("");
   const [emailMessage, setEmailMessage] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export default function LoginPage() {
   useEffect(() => {
     getAuthConfig()
       .then((config) => setAuthProvider(config.auth_provider))
-      .catch(() => setAuthProvider("sso"));
+      .catch(() => setAuthConfigError(true));
   }, []);
 
   useEffect(() => {
@@ -47,7 +49,8 @@ export default function LoginPage() {
   }, [searchParams, setRedirectMessage, setSearchParams]);
 
   function handleLogin(provider = authProvider) {
-    window.location.href = import.meta.env.VITE_API_URL+"/api/v1/auth/login?provider="+provider;
+    if (!provider) return;
+    window.location.href = apiUrl(`/api/v1/auth/login?provider=${provider}`);
   }
 
   async function handleEmailLogin(event: FormEvent<HTMLFormElement>) {
@@ -67,9 +70,13 @@ export default function LoginPage() {
     }
   }
 
-  const providerLabel = authProvider === "google"
-    ? "Continue with Google"
-    : "University of Auckland Single Sign-on";
+  const providerLabel = authConfigError
+    ? "Sign-in unavailable"
+    : authProvider === "google"
+      ? "Continue with Google"
+      : authProvider === "sso"
+        ? "University of Auckland Single Sign-on"
+        : "Loading sign-in...";
 
   return (
     <>
@@ -117,9 +124,15 @@ export default function LoginPage() {
 
               </div>
 
-                 <button className="block w-full px-6 py-4 font-semibold text-white transition bg-blue-600 shadow-lg cursor-pointer hover:bg-blue-700 rounded-xl" onClick={() => handleLogin()} disabled={isLoading}>
+                 <button className="block w-full px-6 py-4 font-semibold text-white transition bg-blue-600 shadow-lg cursor-pointer hover:bg-blue-700 rounded-xl" onClick={() => handleLogin()} disabled={isLoading || !authProvider || authConfigError}>
                     {providerLabel}
                  </button>
+
+                 {authConfigError && (
+                   <div className="mt-4 rounded-lg border border-red-500/40 bg-red-50 px-4 py-3 text-left text-sm text-red-950">
+                     The sign-in configuration could not be loaded. Please refresh the page or contact support.
+                   </div>
+                 )}
 
                  {authProvider === "google" && (
                    <>

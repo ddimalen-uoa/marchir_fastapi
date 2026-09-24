@@ -54,6 +54,11 @@ jobs:
       FRONTEND_URL: ${{ vars.FRONTEND_URL }}
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
 
+      APP_SMTP_HOST: ${{ vars.APP_SMTP_HOST }}
+      APP_SMTP_PORT: ${{ vars.APP_SMTP_PORT }}
+      APP_SMTP_ENCRYPTION: ${{ vars.APP_SMTP_ENCRYPTION }}
+      APP_MAIL_FROM: ${{ vars.APP_MAIL_FROM }}
+      
       VITE_API_URL: ${{ vars.VITE_API_URL }}
       
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
@@ -164,6 +169,13 @@ jobs:
           OAUTH_EXTRA_SCOPE=${OAUTH_EXTRA_SCOPE}
           FRONTEND_URL=${FRONTEND_URL}
           SESSION_SECRET=${SESSION_SECRET}
+
+          APP_SMTP_HOST=${APP_SMTP_HOST}
+          APP_SMTP_PORT=${APP_SMTP_PORT}
+          APP_SMTP_ENCRYPTION=${APP_SMTP_ENCRYPTION}
+          APP_MAIL_FROM=${vars.APP_MAIL_FROM}
+
+          VITE_API_URL=${VITE_API_URL}         
 
           BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}    
           DOMAIN=${DOMAIN}          
@@ -227,6 +239,11 @@ jobs:
 
       VITE_API_URL: ${{ vars.VITE_API_URL }}
       
+      APP_SMTP_HOST: ${{ vars.APP_SMTP_HOST }}
+      APP_SMTP_PORT: ${{ vars.APP_SMTP_PORT }}
+      APP_SMTP_ENCRYPTION: ${{ vars.APP_SMTP_ENCRYPTION }}
+      APP_MAIL_FROM: ${{ vars.APP_MAIL_FROM }}
+
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
       DOMAIN: ${{ vars.LE_DOMAIN }}
     
@@ -335,6 +352,11 @@ jobs:
           OAUTH_EXTRA_SCOPE=${OAUTH_EXTRA_SCOPE}
           FRONTEND_URL=${FRONTEND_URL}
           SESSION_SECRET=${SESSION_SECRET}
+
+          APP_SMTP_HOST=${APP_SMTP_HOST}
+          APP_SMTP_PORT=${APP_SMTP_PORT}
+          APP_SMTP_ENCRYPTION=${APP_SMTP_ENCRYPTION}
+          APP_MAIL_FROM=${vars.APP_MAIL_FROM}
 
           VITE_API_URL=${VITE_API_URL}
 

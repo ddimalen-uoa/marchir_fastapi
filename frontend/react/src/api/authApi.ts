@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiUrl";
+
 export type Role = "student" | "teacher" | "admin" | (string & {});
 
 export type Member = {
@@ -16,7 +18,7 @@ export type MeResponse = {
 };
 
 export async function getMe(): Promise<MeResponse> {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/me", {
+  const response = await fetch(apiUrl("/api/v1/auth/me"), {
     method: "GET",
     credentials: "include",
     headers: {
@@ -36,7 +38,7 @@ export async function getMe(): Promise<MeResponse> {
 }
 
 export async function logoutRequest(): Promise<void> {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/logout", {
+  const response = await fetch(apiUrl("/api/v1/auth/logout"), {
     method: "POST",
     credentials: "include",
     headers: {
@@ -54,7 +56,7 @@ export type AuthConfig = {
 };
 
 export async function getAuthConfig(): Promise<AuthConfig> {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/config", {
+  const response = await fetch(apiUrl("/api/v1/auth/config"), {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -69,7 +71,7 @@ export async function getAuthConfig(): Promise<AuthConfig> {
 }
 
 export async function requestEmailLogin(email: string): Promise<{ ok: boolean; message: string }> {
-  const response = await fetch(import.meta.env.VITE_API_URL+"/api/v1/auth/email/login", {
+  const response = await fetch(apiUrl("/api/v1/auth/email/login"), {
     method: "POST",
     credentials: "include",
     headers: {
