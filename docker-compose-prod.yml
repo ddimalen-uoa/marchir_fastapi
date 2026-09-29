@@ -34,7 +34,7 @@ services:
     volumes:
       - ./backend:/app
       - /var/www/marchir_uploads:/uploads
-      - /var/www/marchir_uploads/submissions:/uploads
+      - /var/www/marchir_uploads/submissions:/marchir/uploads
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
