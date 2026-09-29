@@ -173,6 +173,8 @@ async def submit_assignment(
         if existing_enrollment:
             existing_enrollment.result = submission_output
             existing_enrollment.file_name = filename
+            existing_enrollment.status = "Submitted"
+            existing_enrollment.submitted_at = datetime.utcnow()
 
             db.commit()
             db.refresh(existing_enrollment)

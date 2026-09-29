@@ -135,6 +135,15 @@ export default function StudentDashboard() {
   const handleSubmit = async () => {
     if (!selectedFile || validationState.type !== "success") return;
 
+    if (
+      lastSubmission &&
+      !window.confirm(
+        "Submitting this ZIP will replace your current submission. Do you want to continue?",
+      )
+    ) {
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -176,11 +185,6 @@ export default function StudentDashboard() {
         errors: ["An unexpected error occurred while submitting your assignment."],
       });
     }
-  };
-
-  const handleReupload = () => {
-    handleClear();
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -285,6 +289,21 @@ export default function StudentDashboard() {
                       Selected file: {selectedFile.name}
                     </div>
                   )}
+
+                  {lastSubmission && (
+                    <div
+                      role="alert"
+                      className="px-4 py-3 mt-3 border rounded-lg border-amber-200 bg-amber-50"
+                    >
+                      <p className="text-sm font-semibold text-amber-900">
+                        This will be a replacement submission
+                      </p>
+                      <p className="mt-1 text-sm text-amber-800">
+                        Submitting another ZIP will replace your current submitted file and
+                        results.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -316,7 +335,7 @@ export default function StudentDashboard() {
                     onClick={handleSubmit}
                     className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold text-white transition shadow-sm rounded-xl bg-emerald-600 hover:bg-emerald-700"
                   >
-                    Ready to Submit
+                    {lastSubmission ? "Replace Submission" : "Ready to Submit"}
                   </button>
 
                   <button
@@ -354,21 +373,13 @@ export default function StudentDashboard() {
         {!isFetchingLastSubmission && lastSubmission && (
           <section className="mt-8">
             <div className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200">
-              <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-6">
                 <div>
                   <h2 className="text-xl font-semibold">Last Submission</h2>
                   <p className="mt-1 text-sm text-slate-500">
                     Details of your most recently submitted ZIP file.
                   </p>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleReupload}
-                  className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold text-white transition bg-blue-600 shadow-sm rounded-xl hover:bg-blue-700"
-                >
-                  Re-upload
-                </button>
               </div>
 
               <div className="overflow-hidden border rounded-xl border-slate-200">

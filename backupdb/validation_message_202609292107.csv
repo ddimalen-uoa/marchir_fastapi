@@ -1,0 +1,15 @@
+"id","name","code","message"
+1,css file(s) present ,CSSFOUND,css file(s) present
+2,css file missing ,CSSNOTFOUND,css file(s) are not present. This is a warning that css should be included either as seperate files or embedded.
+3,js file(s) present  ,JSFOUND,javascript file(s) present
+4,js file missing  ,JSNOTFOUND,js file(s) are not present. This is a warning that js should be included either as seperate files or embedded.
+5,selector present  ,SELECTORFOUND,{selector_name} {selector_type} was found. Note: Whether or not its usage is correct cannot be determined by this validator
+6,selector missing ,SELECTORMISSING,{selector_name} {selector_type} is missing from your HTML code. All associated marks will be 0.
+7,selector misplaced  ,SELECTORMISPLACED,{selector_name} {selector_type} was found but NOT incased within a {selector_placement}. All associated marks will be 0. Note: Whether or not its usage is correct cannot be determined by this validator
+8,form present  ,FORMFOUND,Form {form_id} was found
+9,form missing  ,FORMMISSING,form id named {form_id} was NOT found. All marks associated with the form will be 0. It is REQUIRED to enclose the form with a div html element with the id {form_id}
+10,section present ,SECTIONFOUND,Section {section_id} was found
+11,section missing ,SECTIONMISSING,Section {section_id} inside the form was NOT found. All marks associated with {section_id} will be 0. It is REQUIRED to place the div element with the id {section_id} inside the form {form_id}.
+12,section correct fields ,SECTIONCORRECTFIELDS,The section {section_id} has the right amount of input fields
+13,section too many fields ,SECTIONTOOMANYFIELDS,The section {section_id} has too many input fields Please only include {num_fields} fields
+14,section not enough fields,SECTIONNOTENOUGHFIELDS,The section {section_id} does not have enough input fields Please include {num_fields} fields

@@ -3,9 +3,10 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy import text
 
-from config.core import engine, Base
+from config.core import engine, Base, SessionLocal
 from api import register_routes
 from logger import configure_logging, LogLevels
+from v1.course.current import ensure_current_hci_course
 
 import v1.models
 
@@ -46,5 +47,20 @@ def ensure_auth_schema():
 
 
 ensure_auth_schema()
+
+
+def ensure_current_hci_course_on_startup():
+    db = SessionLocal()
+    try:
+        ensure_current_hci_course(db)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+ensure_current_hci_course_on_startup()
 
 register_routes(app)
