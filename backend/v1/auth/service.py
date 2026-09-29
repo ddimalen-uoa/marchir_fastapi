@@ -16,6 +16,7 @@ from v1.member.model import Member
 from v1.user_session.model import UserSession
 from v1.email.mailer import MailerConfigurationError, MailerDeliveryError, send_email
 from v1.email_verification_token.model import EmailVerificationToken
+from v1.course.current import enroll_member_in_current_hci_course
 
 from config.config_loader import settings
 
@@ -340,6 +341,7 @@ async def get_callback_module(
             db.add(member)
             db.commit()
             db.refresh(member)
+            enroll_member_in_current_hci_course(db, member)
 
         if not member.email_verified:
             mark_member_details(member, userinfo, "google")
@@ -390,6 +392,7 @@ async def post_email_login_module(db: Session, email: str):
         db.add(member)
         db.commit()
         db.refresh(member)
+        enroll_member_in_current_hci_course(db, member)
 
     purpose = "login" if member.email_verified else "verify"
     token_row = create_email_token(db, member, purpose)
