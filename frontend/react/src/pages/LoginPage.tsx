@@ -14,6 +14,7 @@ import {
   type LoginCourse,
 } from "../api/authApi";
 import { apiUrl } from "../api/apiUrl";
+import { LoginHelpPopover } from "../components/LoginHelpPopover";
 
 import background_image from "../assets/loginbackground2.png";
 import logo from "../assets/uoa_logo.png"
@@ -173,6 +174,19 @@ export default function LoginPage() {
                   Secure access portal
                 </p>
 
+                {authProvider === "google" && (
+                  <LoginHelpPopover title="Request teacher access" label="How to request teacher access" text="Need teacher access?">
+                    <p>Register first: select a course, then choose Continue with Google or use your email address below. Complete email verification before requesting access.</p>
+                    <p>Email <a href="mailto:d.dimalen@auckland.ac.nz?subject=Teacher%20access%20request" className="font-medium text-blue-700 underline hover:text-blue-800">d.dimalen@auckland.ac.nz</a> with:</p>
+                    <ul className="list-disc space-y-1 pl-5">
+                      <li>Your full name.</li>
+                      <li>The email address you used to register.</li>
+                      <li>The name of the person who referred you to this website.</li>
+                      <li>Why you need teacher access.</li>
+                    </ul>
+                  </LoginHelpPopover>
+                )}
+
               </div>
 
                  {authProvider === "google" && (
@@ -286,9 +300,17 @@ export default function LoginPage() {
                      </div>
 
                      <form onSubmit={handleEmailLogin} className="space-y-3 text-left">
-                       <label className="block text-sm font-medium text-white/80" htmlFor="email-login">
-                         Email address
-                       </label>
+                       <div className="flex items-center gap-1">
+                         <label className="text-sm font-medium text-white/80" htmlFor="email-login">Email address</label>
+                         <LoginHelpPopover title="Sign in with email" label="How email sign-in works">
+                           <ol className="list-decimal space-y-2 pl-5">
+                             <li>Select a course, enter your email address, and click Send email link.</li>
+                             <li>Check your inbox, including your spam or junk folder. The link expires after 30 minutes.</li>
+                             <li>If this is your first visit, open the link to verify your email. Then return here and request another email link to sign in.</li>
+                             <li>If your email is already verified, open the sign-in link to access your account. No password is needed.</li>
+                           </ol>
+                         </LoginHelpPopover>
+                       </div>
                        <input
                          id="email-login"
                          className="w-full rounded-lg border border-white/30 bg-white/90 px-4 py-3 text-slate-950 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-300"
