@@ -108,8 +108,8 @@ export default function LoginPage() {
       const response = await requestEmailLogin(email, Number(selectedCourseId));
       setEmailMessage(response.message);
       setEmail("");
-    } catch {
-      setEmailError("We could not send the email right now. Please try again shortly.");
+    } catch (error) {
+      setEmailError(error instanceof Error ? error.message : "We could not send the email right now. Please try again shortly.");
     } finally {
       setIsEmailSubmitting(false);
     }
@@ -158,12 +158,8 @@ export default function LoginPage() {
 
                  {redirectMessage && (
                    <div
-                     style={{
-                       marginBottom: 16,
-                       padding: 12,
-                       border: "1px solid #d97706",
-                      background: "#fff7ed",
-                     }}
+                     role="alert"
+                     className="w-full break-words rounded-lg border border-amber-400 bg-amber-50 p-3 text-left text-sm text-amber-950"
                    >
                      {redirectMessage}
                    </div>
@@ -318,7 +314,7 @@ export default function LoginPage() {
                      )}
 
                      {emailError && (
-                       <div className="mt-4 rounded-lg border border-red-500/40 bg-red-50 px-4 py-3 text-left text-sm text-red-950">
+                       <div role="alert" className="mt-4 break-words rounded-lg border border-red-500/40 bg-red-50 px-4 py-3 text-left text-sm text-red-950">
                          {emailError}
                        </div>
                      )}

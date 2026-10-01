@@ -4,6 +4,8 @@ import LoginPage from "../pages/LoginPage";
 import StudentDashboard from "../pages/StudentDashboard";
 import TeacherDashboard from "../pages/TeacherDashboard/TeacherDashboard";
 import AdminPage from "../pages/AdminPage";
+import AdminDashboard from "../pages/AdminDashboard";
+import AdminUsersPage from "../pages/AdminUsersPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 import TeacherDashboardReference from "../pages/TeacherDashboardReference";
@@ -21,6 +23,10 @@ export const router = createBrowserRouter([
   {
     path: "/admin",
     element: <AdminPage />,
+    children: [
+      { index: true, element: <AdminDashboard /> },
+      { path: "users", element: <AdminUsersPage /> },
+    ],
   },
   {
     element: <RequireAuth />,

@@ -36,12 +36,12 @@ async def get_active_courses_with_students_and_submissions_route(
 @router.post("/download-zip-course")
 async def download_zip_course_route(
     member: TeacherMember,
-    course: str = Form(...),
+    course_id: int = Form(...),
     db: DbSession = None # type: ignore    
 ):
     return await service.download_zip_course(
         member,
-        course,
+        course_id,
         db
     )
 

@@ -1,11 +1,10 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle, LogOut, ShieldCheck } from "lucide-react";
+import { BookOpen, LoaderCircle, LogOut, ShieldCheck, Users } from "lucide-react";
 import { loginAdmin, logoutAdmin } from "../api/authApi";
 import { useAdminAuth } from "../features/auth/useAdminAuth";
-import AdminDashboard from "./AdminDashboard";
 import logo from "../assets/uoa_logo.png";
 
 export default function AdminPage() {
@@ -36,6 +35,8 @@ export default function AdminPage() {
     setIsSubmitting(true);
     try {
       await logoutAdmin();
+      queryClient.removeQueries({ queryKey: ["admin-users"] });
+      queryClient.removeQueries({ queryKey: ["admin-courses"] });
       await queryClient.resetQueries({ queryKey: ["auth", "admin"] });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Admin sign-out failed.");
@@ -50,15 +51,27 @@ export default function AdminPage() {
 
   if (data?.authenticated && !isError) {
     return (
-      <div className="min-h-screen bg-slate-100">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
-          <span className="text-sm font-medium text-gray-700">{data.admin.username}</span>
+      <div className="min-h-screen bg-gray-100">
+        <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4">
+          <div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-blue-700" /><span className="font-semibold text-gray-900">Administration</span><span className="text-sm text-gray-500">{data.admin.username}</span></div>
           <button type="button" onClick={handleLogout} disabled={isSubmitting} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50">
             <LogOut className="h-4 w-4" aria-hidden="true" />Sign out
           </button>
         </div>
+        <nav aria-label="Admin navigation" className="mx-auto flex max-w-7xl gap-6 px-6">
+          {[
+            { to: "/admin", label: "Courses", icon: BookOpen, end: true },
+            { to: "/admin/users", label: "Users", icon: Users, end: false },
+          ].map(({ to, label, icon: Icon, end }) => (
+            <NavLink key={to} to={to} end={end} className={({ isActive }) => `inline-flex items-center gap-2 border-b-2 py-3 text-sm font-medium ${isActive ? "border-blue-700 text-blue-700" : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"}`}>
+              <Icon className="h-4 w-4" aria-hidden="true" />{label}
+            </NavLink>
+          ))}
+        </nav>
+        </header>
         {error && <p role="alert" className="mx-auto max-w-7xl px-6 pb-3 text-sm text-red-700">{error}</p>}
-        <AdminDashboard />
+        <Outlet />
       </div>
     );
   }

@@ -21,6 +21,7 @@ from v1.course.current import enroll_member_in_course, enroll_member_in_current_
 from config.config_loader import settings
 
 from v1.auth.service_extension import CurrentMember
+from v1.auth.messages import AccountSuspendedError
 
 EMAIL_TOKEN_MINUTES = 30
 GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo"
@@ -118,6 +119,7 @@ def create_session_response(
     token_type: str | None = None,
     scope: str | None = None,
 ):
+    ensure_member_login_active(member)
     session_token = secrets.token_urlsafe(48)
 
     session_row = UserSession(
@@ -155,6 +157,11 @@ def create_session_response(
 
 def get_member_by_email(db: Session, email: str) -> Member | None:
     return db.query(Member).filter(Member.email.ilike(email)).first()
+
+
+def ensure_member_login_active(member: Member) -> None:
+    if not member.is_active:
+        raise AccountSuspendedError()
 
 
 def create_email_token(db: Session, member: Member, purpose: str) -> EmailVerificationToken:
@@ -367,6 +374,8 @@ async def get_callback_module(
         member.email_verified_at = member.email_verified_at or datetime.utcnow()
     else:
         member = get_member_by_email(db, email)
+        if member:
+            ensure_member_login_active(member)
         if not member:
             member = Member(
                 email=email.lower(),
@@ -402,6 +411,7 @@ async def get_callback_module(
                 status_code=302,
             )
 
+    ensure_member_login_active(member)
     mark_member_details(member, userinfo, auth_provider)
     if selected_course_id is not None:
         enroll_member_in_course(db, member, selected_course_id)
@@ -423,6 +433,8 @@ async def post_email_login_module(db: Session, email: str, course_id: int | None
     selected_course_id = validate_login_course(db, "google", course_id)
     normalized_email = email.strip().lower()
     member = get_member_by_email(db, normalized_email)
+    if member:
+        ensure_member_login_active(member)
 
     if not member:
         member = Member(
@@ -477,6 +489,8 @@ async def get_email_verify_module(db: Session, token: str | None = None):
     member = db.query(Member).filter(Member.id == token_row.member_id).first()
     if not member:
         raise HTTPException(status_code=400, detail="Member not found")
+
+    ensure_member_login_active(member)
 
     token_row.is_used = True
     token_row.used_at = datetime.utcnow()

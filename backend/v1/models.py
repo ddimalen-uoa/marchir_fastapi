@@ -2,6 +2,7 @@ from v1.test import model as test_models
 from v1.validation_message import model as validation_message_models
 from v1.member import model as member_models
 from v1.course import model as course_models
+from v1.course import teacher_assignment as teacher_assignment_models
 from v1.enrollment import model as enrollment_models
 from v1.marker_result import model as marker_result_models
 from v1.oauth_transaction import model as oauth_transaction_models

@@ -10,6 +10,7 @@ from v1.member.model import Member
 from v1.enrollment.model import Enrollment
 from v1.course.model import Course
 from v1.auth.admin_session import AdminIdentity, get_current_admin
+from v1.auth.messages import AccountSuspendedError
 
 
 def get_current_member(
@@ -34,6 +35,8 @@ def get_current_member(
     member = session_row.member
     if not member:
         raise HTTPException(status_code=401, detail="Member not found")
+    if not member.is_active:
+        raise AccountSuspendedError()
 
     return member
 
@@ -74,6 +77,7 @@ def get_current_enrollment(
             Enrollment.member_id == member.id,
             Course.is_active == True
         )
+        .with_for_update(of=Enrollment)
         .first()
     )
 
