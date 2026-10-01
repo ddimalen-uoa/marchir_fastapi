@@ -63,6 +63,9 @@ jobs:
       
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
       DOMAIN: ${{ vars.LE_DOMAIN }}
+
+      ADMIN_USERNAME: ${{ vars.ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
     
     steps:
       - name: Fix workspace ownership
@@ -102,6 +105,7 @@ jobs:
           test -n "${{ vars.POSTGRES_HOST }}"      || { echo "::error::Missing vars.POSTGRES_HOST"; exit 1; }
           test -n "${{ vars.POSTGRES_PORT }}"      || { echo "::error::Missing vars.POSTGRES_PORT"; exit 1; }
           test -n "${{ secrets.JWT_SECRET_KEY }}"     || { echo "::error::Missing secrets.JWT_SECRET_KEY"; exit 1; }
+          test -n "${{ secrets.ADMIN_PASSWORD }}"     || { echo "::error::Missing secrets.ADMIN_PASSWORD"; exit 1; }
       
           # If these are in Variables, keep vars.*; if you put them in Secrets, change to secrets.*
           test -n "${{ vars.LE_DOMAIN }}"                || { echo "::error::Missing vars.LE_DOMAIN"; exit 1; }
@@ -116,6 +120,7 @@ jobs:
           test -n "${{ vars.DPORT_DB_HOST }}"               || echo "::warning::vars.DPORT_DB_HOST is empty"
           test -n "${{ vars.DPORT_DB_CONTAINER }}"          || echo "::warning::vars.DPORT_DB_CONTAINER is empty"
           test -n "${{ vars.BACKEND_CORS_ORIGINS }}"        || echo "::warning::vars.BACKEND_CORS_ORIGINS is empty"
+          test -n "${{ vars.ADMIN_USERNAME }}"              || echo "::warning::vars.ADMIN_USERNAME is empty"
       
       - name: Show what will be written to .env (masking secrets)
         run: |
@@ -126,6 +131,7 @@ jobs:
           echo "POSTGRES_HOST=<set? $([[ -n '${{ vars.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_PORT=<set? $([[ -n '${{ vars.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
           echo "JWT_SECRET_KEY=<set? $([[ -n '${{ secrets.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
+          echo "ADMIN_PASSWORD=<set? $([[ -n '${{ secrets.ADMIN_PASSWORD }}' ]] && echo yes || echo no)>"
 
       # Create a .env for Compose and your FastAPI Settings(BaseSettings)
       # Compose relies on this because your services use `env_file: - .env`
@@ -178,7 +184,10 @@ jobs:
           VITE_API_URL=${VITE_API_URL}
 
           BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}    
-          DOMAIN=${DOMAIN}          
+          DOMAIN=${DOMAIN}  
+
+          ADMIN_USERNAME=${ADMIN_USERNAME}
+          ADMIN_PASSWORD=${ADMIN_PASSWORD}
           EOF
           echo "Wrote $(pwd)/.env"         
 
@@ -246,6 +255,9 @@ jobs:
 
       BACKEND_CORS_ORIGINS: ${{ vars.BACKEND_CORS_ORIGINS }}
       DOMAIN: ${{ vars.LE_DOMAIN }}
+
+      ADMIN_USERNAME: ${{ vars.ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
     
     steps:
       - name: Fix workspace ownership
@@ -285,6 +297,7 @@ jobs:
           test -n "${{ vars.POSTGRES_HOST }}"      || { echo "::error::Missing vars.POSTGRES_HOST"; exit 1; }
           test -n "${{ vars.POSTGRES_PORT }}"      || { echo "::error::Missing vars.POSTGRES_PORT"; exit 1; }
           test -n "${{ secrets.JWT_SECRET_KEY }}"     || { echo "::error::Missing secrets.JWT_SECRET_KEY"; exit 1; }
+          test -n "${{ secrets.ADMIN_PASSWORD }}"     || { echo "::error::Missing secrets.ADMIN_PASSWORD"; exit 1; }
       
           # If these are in Variables, keep vars.*; if you put them in Secrets, change to secrets.*
           test -n "${{ vars.LE_DOMAIN }}"                || { echo "::error::Missing vars.LE_DOMAIN"; exit 1; }
@@ -299,6 +312,7 @@ jobs:
           test -n "${{ vars.DPORT_DB_HOST }}"               || echo "::warning::vars.DPORT_DB_HOST is empty"
           test -n "${{ vars.DPORT_DB_CONTAINER }}"          || echo "::warning::vars.DPORT_DB_CONTAINER is empty"
           test -n "${{ vars.BACKEND_CORS_ORIGINS }}"        || echo "::warning::vars.BACKEND_CORS_ORIGINS is empty"
+          test -n "${{ vars.ADMIN_USERNAME }}"              || echo "::warning::vars.ADMIN_USERNAME is empty"
       
       - name: Show what will be written to .env (masking secrets)
         run: |
@@ -309,6 +323,7 @@ jobs:
           echo "POSTGRES_HOST=<set? $([[ -n '${{ vars.POSTGRES_HOST }}' ]] && echo yes || echo no)>"
           echo "POSTGRES_PORT=<set? $([[ -n '${{ vars.POSTGRES_PORT }}' ]] && echo yes || echo no)>"
           echo "JWT_SECRET_KEY=<set? $([[ -n '${{ secrets.JWT_SECRET_KEY }}' ]] && echo yes || echo no)>"
+          echo "ADMIN_PASSWORD=<set? $([[ -n '${{ secrets.ADMIN_PASSWORD }}' ]] && echo yes || echo no)>"
 
       # Create a .env for Compose and your FastAPI Settings(BaseSettings)
       # Compose relies on this because your services use `env_file: - .env`
@@ -361,7 +376,10 @@ jobs:
           VITE_API_URL=${VITE_API_URL}
 
           BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}    
-          DOMAIN=${DOMAIN}          
+          DOMAIN=${DOMAIN}
+          
+          ADMIN_USERNAME=${ADMIN_USERNAME}
+          ADMIN_PASSWORD=${ADMIN_PASSWORD}
           EOF
           echo "Wrote $(pwd)/.env"         
 

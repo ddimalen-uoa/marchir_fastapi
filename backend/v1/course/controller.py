@@ -13,6 +13,12 @@ router = APIRouter(
     tags=['Course Route']
 )
 
+@router.get("/active")
+async def get_public_active_courses_route(
+    db: DbSession = None
+):
+    return await service.get_public_active_courses(db)
+
 @router.post("/add-course")
 async def add_course_route(
     member: AdminMember,

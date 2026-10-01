@@ -3,7 +3,7 @@ import { createBrowserRouter } from "react-router";
 import LoginPage from "../pages/LoginPage";
 import StudentDashboard from "../pages/StudentDashboard";
 import TeacherDashboard from "../pages/TeacherDashboard/TeacherDashboard";
-import AdminDashboard from "../pages/AdminDashboard";
+import AdminPage from "../pages/AdminPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 import TeacherDashboardReference from "../pages/TeacherDashboardReference";
@@ -17,6 +17,10 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <LoginPage />,
+  },
+  {
+    path: "/admin",
+    element: <AdminPage />,
   },
   {
     element: <RequireAuth />,
@@ -52,15 +56,6 @@ export const router = createBrowserRouter([
                 path: "/teacher/reference",
                 element: <TeacherDashboardReference />,
               },               
-            ],
-          },
-          {
-            element: <RequireRole allowedRoles={[ROLE.ADMIN]} />,
-            children: [
-              {
-                path: "/admin",
-                element: <AdminDashboard />,
-              },
             ],
           },
         ],

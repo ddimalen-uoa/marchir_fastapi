@@ -12,6 +12,28 @@ from config.config_loader import settings
 
 from v1.course.model import Course
 
+
+def serialize_course(course: Course):
+    return {
+        "id": course.id,
+        "name": course.name,
+        "course_code": course.course_code,
+        "start_date": course.start_date.date().isoformat() if course.start_date else None,
+        "end_date": course.end_date.date().isoformat() if course.end_date else None,
+        "is_active": course.is_active,
+    }
+
+
+async def get_public_active_courses(db: DbSession = None):
+    courses = (
+        db.query(Course)
+        .filter(Course.is_active.is_(True))
+        .order_by(Course.name, Course.id)
+        .all()
+    )
+
+    return [serialize_course(course) for course in courses]
+
 async def add_course(
     member: AdminMember,
     name: Optional[str] = Form(None),

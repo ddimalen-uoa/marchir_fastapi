@@ -73,3 +73,39 @@ def enroll_member_in_current_hci_course(
     db.commit()
     db.refresh(enrollment)
     return enrollment
+
+
+def get_active_course_by_id(db: Session, course_id: int) -> Course | None:
+    return (
+        db.query(Course)
+        .filter(Course.id == course_id, Course.is_active.is_(True))
+        .first()
+    )
+
+
+def enroll_member_in_course(
+    db: Session,
+    member: Member,
+    course_id: int,
+) -> Enrollment:
+    course = get_active_course_by_id(db, course_id)
+    if not course:
+        raise ValueError("Selected course is not available")
+
+    enrollment = (
+        db.query(Enrollment)
+        .filter(
+            Enrollment.member_id == member.id,
+            Enrollment.course_id == course.id,
+        )
+        .first()
+    )
+
+    if enrollment:
+        return enrollment
+
+    enrollment = Enrollment(member_id=member.id, course_id=course.id)
+    db.add(enrollment)
+    db.commit()
+    db.refresh(enrollment)
+    return enrollment

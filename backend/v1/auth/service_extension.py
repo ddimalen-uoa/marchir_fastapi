@@ -9,6 +9,7 @@ from v1.user_session.model import UserSession
 from v1.member.model import Member
 from v1.enrollment.model import Enrollment
 from v1.course.model import Course
+from v1.auth.admin_session import AdminIdentity, get_current_admin
 
 
 def get_current_member(
@@ -59,7 +60,7 @@ def require_roles(*allowed_roles: str) -> Callable:
 
 StudentMember = Annotated[Member, Depends(require_roles("student"))]
 TeacherMember = Annotated[Member, Depends(require_roles("teacher"))]
-AdminMember = Annotated[Member, Depends(require_roles("admin"))]
+AdminMember = Annotated[AdminIdentity, Depends(get_current_admin)]
 
 def get_current_enrollment(
     member: StudentMember,

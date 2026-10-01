@@ -24,6 +24,9 @@ PIPELINE=local
 # Authentication
 # OAUTH_* configures Google. Keep the existing SSO/Cognito values in SSO_OAUTH_*.
 AUTH_PROVIDER=google
+# Separate admin login at /admin. Leave blank to disable admin login.
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
 OAUTH_CLIENT_ID=xxx
 OAUTH_CLIENT_SECRET=xxx
 OAUTH_AUTHORIZE_URL=https://accounts.google.com/o/oauth2/v2/auth
