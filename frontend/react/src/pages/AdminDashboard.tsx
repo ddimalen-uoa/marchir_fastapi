@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { type CourseEnrolled } from "@/types/course";
 import { getCoursesAndEnrollments, runAutoEnrollment, addNewCourse, updateCourse } from "../api/api";
-import { useAuth } from "../features/auth/useAuth";
+import { useAdminAuth } from "../features/auth/useAdminAuth";
 import { delay } from "@/features/utilities/delaysTimer";
 
 type CourseFormState = {
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
   const [newCourse, setNewCourse] = useState<CourseFormState>(emptyFormState);
   const [editCourse, setEditCourse] = useState<CourseFormState>(emptyFormState);
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: memberData } = useAuth();
+  const { data: adminData } = useAdminAuth();
 
   const coursesPerPage = 5;
 
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="px-4 py-2 text-sm font-medium text-blue-700 rounded-full bg-blue-50">
-              Welcome, {memberData?.member.first_name ?? memberData?.member.upi ?? "Admin"}.
+              Welcome, {adminData?.admin.username ?? "Admin"}.
             </div>
           </div>
         </header>

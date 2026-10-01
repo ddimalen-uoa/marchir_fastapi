@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     OAUTH_CLIENT_SECRET: str = ''
     OAUTH_SCOPE: str = 'openid email profile'
     AUTH_PROVIDER: str = 'sso'
+    ADMIN_USERNAME: str = ''
+    ADMIN_PASSWORD: str = ''
     SSO_OAUTH_CLIENT_ID: str | None = None
     SSO_OAUTH_CLIENT_SECRET: str | None = None
     SSO_OAUTH_AUTHORIZE_URL: str | None = None

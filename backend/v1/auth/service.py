@@ -16,7 +16,7 @@ from v1.member.model import Member
 from v1.user_session.model import UserSession
 from v1.email.mailer import MailerConfigurationError, MailerDeliveryError, send_email
 from v1.email_verification_token.model import EmailVerificationToken
-from v1.course.current import enroll_member_in_current_hci_course
+from v1.course.current import enroll_member_in_course, enroll_member_in_current_hci_course, get_active_course_by_id
 
 from config.config_loader import settings
 
@@ -33,6 +33,24 @@ def extract_upi_from_email(email: str) -> str | None:
 def generate_state() -> str:
     return secrets.token_urlsafe(32)
 
+
+def build_oauth_state(course_id: int | None = None) -> str:
+    state = generate_state()
+    if course_id is None:
+        return state
+    return f"{state}.course-{course_id}"
+
+
+def extract_course_id_from_state(state: str | None) -> int | None:
+    if not state or ".course-" not in state:
+        return None
+
+    course_id_value = state.rsplit(".course-", 1)[-1]
+    try:
+        return int(course_id_value)
+    except ValueError:
+        return None
+
 def generate_code_verifier() -> str:
     return secrets.token_urlsafe(64)
 
@@ -46,6 +64,19 @@ def normalize_auth_provider(provider: str | None = None) -> str:
     if normalized not in {"sso", "google"}:
         return "sso"
     return normalized
+
+
+def validate_login_course(db: Session, auth_provider: str, course_id: int | None) -> int | None:
+    if auth_provider != "google":
+        return None
+
+    if course_id is None:
+        raise HTTPException(status_code=400, detail="Please select a course.")
+
+    if not get_active_course_by_id(db, course_id):
+        raise HTTPException(status_code=400, detail="Selected course is not available.")
+
+    return course_id
 
 
 def get_oauth_config(provider: str):
@@ -182,10 +213,11 @@ async def get_auth_config_module():
     return {"auth_provider": normalize_auth_provider()}
 
 
-async def get_login_module(db:Session, provider: str | None = None):
+async def get_login_module(db:Session, provider: str | None = None, course_id: int | None = None):
     auth_provider = normalize_auth_provider(provider)
+    selected_course_id = validate_login_course(db, auth_provider, course_id)
     oauth_config = get_oauth_config(auth_provider)
-    state = generate_state()
+    state = build_oauth_state(selected_course_id)
     code_verifier = generate_code_verifier()
     code_challenge = generate_code_challenge(code_verifier)
 
@@ -249,6 +281,11 @@ async def get_callback_module(
         raise HTTPException(status_code=400, detail="State expired")
 
     auth_provider = normalize_auth_provider(getattr(txn, "provider", None))
+    selected_course_id = validate_login_course(
+        db,
+        auth_provider,
+        extract_course_id_from_state(state),
+    )
     oauth_config = get_oauth_config(auth_provider)
 
     token_payload = {
@@ -341,7 +378,10 @@ async def get_callback_module(
             db.add(member)
             db.commit()
             db.refresh(member)
-            enroll_member_in_current_hci_course(db, member)
+            if selected_course_id is not None:
+                enroll_member_in_course(db, member, selected_course_id)
+            else:
+                enroll_member_in_current_hci_course(db, member)
 
         if not member.email_verified:
             mark_member_details(member, userinfo, "google")
@@ -363,6 +403,8 @@ async def get_callback_module(
             )
 
     mark_member_details(member, userinfo, auth_provider)
+    if selected_course_id is not None:
+        enroll_member_in_course(db, member, selected_course_id)
     txn.is_used = True
     db.commit()
 
@@ -377,7 +419,8 @@ async def get_callback_module(
     )
 
 
-async def post_email_login_module(db: Session, email: str):
+async def post_email_login_module(db: Session, email: str, course_id: int | None = None):
+    selected_course_id = validate_login_course(db, "google", course_id)
     normalized_email = email.strip().lower()
     member = get_member_by_email(db, normalized_email)
 
@@ -392,7 +435,10 @@ async def post_email_login_module(db: Session, email: str):
         db.add(member)
         db.commit()
         db.refresh(member)
-        enroll_member_in_current_hci_course(db, member)
+        enroll_member_in_course(db, member, selected_course_id)
+
+    else:
+        enroll_member_in_course(db, member, selected_course_id)
 
     purpose = "login" if member.email_verified else "verify"
     token_row = create_email_token(db, member, purpose)

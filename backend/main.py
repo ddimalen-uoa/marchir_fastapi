@@ -7,6 +7,9 @@ from config.core import engine, Base, SessionLocal
 from api import register_routes
 from logger import configure_logging, LogLevels
 from v1.course.current import ensure_current_hci_course
+from rate_limiting import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 import v1.models
 
@@ -17,6 +20,8 @@ SESSION_SECRET = "change-me-in-production"
 app = FastAPI(
     root_path="/api"
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     SessionMiddleware,
