@@ -6,6 +6,7 @@ from v1.enrollment.controller import router as enrollment_router
 from v1.auth.controller import router as auth_router
 from v1.marker_result.controller import router as marker_result_router
 from v1.course.controller import router as course_router
+from v1.member.admin import router as admin_users_router
 
 def register_routes(app: FastAPI):
     app.include_router(test_router, prefix="/v1")
@@ -14,3 +15,4 @@ def register_routes(app: FastAPI):
     app.include_router(auth_router, prefix="/v1")
     app.include_router(marker_result_router, prefix="/v1")
     app.include_router(course_router, prefix="/v1")
+    app.include_router(admin_users_router, prefix="/v1")

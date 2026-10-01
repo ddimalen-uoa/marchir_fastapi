@@ -20,9 +20,12 @@ from config.core import DbSession
 from v1.auth.service_extension import CurrentMember, StudentMember, CurrentEnrollment, TeacherMember
 
 from v1.course.model import Course
+from v1.course.teacher_assignment import TeacherCourseAssignment
 from v1.enrollment.model import Enrollment
 from v1.member.model import Member
 from v1.marker_result.model import MarkerResult
+
+COURSE_UPLOAD_ROOT = Path("/marchir/uploads")
 
 async def get_last_submission(
         member: StudentMember,
@@ -43,6 +46,7 @@ async def get_active_courses_with_students_and_submissions(
     stmt = (    
         select(Course)
         .where(Course.is_active.is_(True))
+        .where(Course.id.in_(select(TeacherCourseAssignment.course_id).where(TeacherCourseAssignment.member_id == member.id)))
         .options(
             selectinload(Course.enrollments)
             .selectinload(Enrollment.member),
@@ -108,12 +112,18 @@ async def get_active_courses_with_students_and_submissions(
 
 async def download_zip_course(
         member: TeacherMember,
-        course: str = Form(...),
+        course_id: int,
         db: DbSession = None # type: ignore
     ):
 
-    source_folder = Path(f"/marchir/uploads/{course}")
-    output_zip = Path(f"/marchir/uploads/zipfiles/{course.replace(".", "")}.zip")
+    course = require_assigned_course(db, member.id, course_id)
+    uploads_root = COURSE_UPLOAD_ROOT.resolve()
+    source_folder = (uploads_root / (course.name or "").replace(" ", "_")).resolve()
+    if source_folder == uploads_root or not source_folder.is_relative_to(uploads_root):
+        raise HTTPException(status_code=400, detail="Invalid course folder.")
+    if not source_folder.is_dir():
+        raise HTTPException(status_code=404, detail="No submission files are available for this course.")
+    output_zip = uploads_root / "zipfiles" / f"course_{course.id}"
 
     output_zip.parent.mkdir(parents=True, exist_ok=True)
 
@@ -125,7 +135,7 @@ async def download_zip_course(
 
     return FileResponse(
         path=zip_path,
-        filename=f"{course.replace(".", "")}.zip",
+        filename=f"course_{course.id}.zip",
         media_type="application/zip"
     )
 
@@ -136,17 +146,13 @@ async def download_course_marker_results_csv(
     db: DbSession = None,  # type: ignore   
 ):
 
-    # 1) Make sure course exists
-    course = db.scalar(
-        select(Course).where(Course.id == course_id)
-    )
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+    course = require_assigned_course(db, member.id, course_id)
 
     # 2) Load all enrollments for this course, including member and marker results
     enrollments = db.scalars(
         select(Enrollment)
         .where(Enrollment.course_id == course_id)
+        .where(Enrollment.member.has(Member.role == "student"))
         .options(
             joinedload(Enrollment.member),
             joinedload(Enrollment.marker_results),
@@ -250,3 +256,10 @@ async def download_course_marker_results_csv(
             "Content-Disposition": f'attachment; filename="{filename}"'
         },
     )    
+
+
+def require_assigned_course(db: Session, member_id: int, course_id: int) -> Course:
+    course = db.scalar(select(Course).join(TeacherCourseAssignment, TeacherCourseAssignment.course_id == Course.id).where(Course.id == course_id, TeacherCourseAssignment.member_id == member_id))
+    if not course:
+        raise HTTPException(status_code=403, detail="You are not assigned to this course.")
+    return course

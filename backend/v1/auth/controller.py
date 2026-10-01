@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Cookie, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from config.config_loader import settings
 from rate_limiting import limiter
@@ -8,6 +8,13 @@ from config.core import DbSession
 
 from . import service
 from v1.auth.service_extension import CurrentMember, AdminMember
+from v1.auth.messages import AccountSuspendedError
+
+
+def suspended_login_response(error: AccountSuspendedError):
+    response = RedirectResponse(service.get_frontend_login_url(error.detail), status_code=302)
+    response.delete_cookie("session_token")
+    return response
 
 router = APIRouter(
     prefix='/auth',
@@ -76,7 +83,10 @@ async def get_callback_route(
     code: str | None = None, 
     state: str | None = None    
 ):
-    return await service.get_callback_module(db, code, state)
+    try:
+        return await service.get_callback_module(db, code, state)
+    except AccountSuspendedError as error:
+        return suspended_login_response(error)
 
 
 @router.post("/email/login")
@@ -92,7 +102,10 @@ async def get_email_verify_route(
     db: DbSession = None, # type: ignore
     token: str | None = None,
 ):
-    return await service.get_email_verify_module(db, token)
+    try:
+        return await service.get_email_verify_module(db, token)
+    except AccountSuspendedError as error:
+        return suspended_login_response(error)
 
 
 @router.get("/me")

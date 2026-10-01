@@ -43,6 +43,7 @@ def ensure_auth_schema():
         "ALTER TABLE member ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(50)",
         "ALTER TABLE member ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE",
         "ALTER TABLE member ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP",
+        "ALTER TABLE member ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE",
         "ALTER TABLE oauth_transaction ADD COLUMN IF NOT EXISTS provider VARCHAR(50) NOT NULL DEFAULT 'sso'",
     ]
 

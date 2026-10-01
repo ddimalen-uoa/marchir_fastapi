@@ -143,7 +143,11 @@ export async function requestEmailLogin(
   });
 
   if (!response.ok) {
-    throw new Error(`EMAIL_LOGIN_FAILED_${response.status}`);
+    if (response.status === 403) {
+      const error = await response.json().catch(() => ({}));
+      if (typeof error.detail === "string") throw new Error(error.detail);
+    }
+    throw new Error("We could not send the email right now. Please try again shortly.");
   }
 
   return response.json() as Promise<{ ok: boolean; message: string }>;

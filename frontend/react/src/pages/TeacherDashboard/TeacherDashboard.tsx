@@ -37,10 +37,11 @@ export default function TeacherDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const handleCSVDownload = async (courseId: number) => {
+    setError(null);
+    setActiveLoaderMessage("Preparing and downloading csv file...");
+    setShowPageLoader(true);
+    try {
       const response = await downloadCsv(courseId);
-
-      setActiveLoaderMessage("Preparing and downloading csv file...");
-      setShowPageLoader(true);
 
       if (!response.ok) {
         throw new Error("Failed to download CSV");
@@ -59,14 +60,19 @@ export default function TeacherDashboard() {
       window.URL.revokeObjectURL(url);
 
       await delay(1000);
+    } catch {
+      setError("Could not download course results. Your course access may have changed. Please refresh and try again.");
+    } finally {
       setShowPageLoader(false);
+    }
   }
 
 
-  const handleZipDownload = async (course: string) => {
+  const handleZipDownload = async (courseId: number, course: string) => {
+      setError(null);
       try {
         const formData = new FormData();
-        formData.append("course", course);
+        formData.append("course_id", String(courseId));
 
         setActiveLoaderMessage("Preparing and downloading zip file...");
         setShowPageLoader(true);
@@ -91,6 +97,7 @@ export default function TeacherDashboard() {
         window.URL.revokeObjectURL(url);
       } catch (err) {
         console.error(err);
+        setError("Could not download course submissions. Your course access may have changed or no files are available.");
       } finally {
         setShowPageLoader(false);
       }
@@ -175,7 +182,7 @@ export default function TeacherDashboard() {
           ) : error ? (
             <div className="py-6 text-sm text-red-600">{error}</div>
           ) : courses.length === 0 ? (
-            <div className="py-6 text-sm text-slate-500">No active courses found.</div>
+            <div className="py-6 text-sm text-slate-500">No active courses assigned.</div>
           ) : (
             <div className="space-y-3">
               {courses.map((course) => {
@@ -221,7 +228,7 @@ export default function TeacherDashboard() {
                                 ? "bg-white/10 ring-1 ring-inset ring-white/10 hover:bg-white/15"
                                 : "bg-white/10 ring-1 ring-inset ring-white/10 hover:bg-white/15"
                               }`}
-                              onClick={() => handleZipDownload(course?.name ?? "")}
+                              onClick={() => handleZipDownload(course.id, course.name ?? "")}
                               >
                               <FileSpreadsheet className="w-4 h-4" />
                               Zip Files
